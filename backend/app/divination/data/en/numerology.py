@@ -1,0 +1,28 @@
+"""English numerology interpretation data."""
+
+TEXTS: dict[str, str] = {
+    "1.life_path": "Initiative and new beginnings shape your life theme. Rather than waiting for permission, start with one choice of your own and adjust your direction from what you learn.",
+    "1.destiny": "You bring new paths and possibilities to others through your initiative. Share the purpose and roles instead of holding the lead alone, so your first step helps others move too.",
+    "2.life_path": "Your life theme grows through harmony and the ability to receive others. Do not rush to a conclusion; listen carefully and create one agreement that everyone can sustain.",
+    "2.destiny": "You connect different views and bring cooperation and ease to a group. Do not exhaust yourself by pleasing everyone; name your own hopes and shape a workable role.",
+    "3.life_path": "Expression and creativity add color to your life. Instead of hiding until everything is perfect, put a small word or work into the world and use the response for your next idea.",
+    "3.destiny": "Your bright expression moves people and brings fresh perspectives to a room. Choose one idea and finish it, rather than scattering your attention across every inspiration.",
+    "4.life_path": "Your life theme develops through dependable foundations and steady effort. Break ideals into steps, then choose a schedule and a way to check progress that you can keep.",
+    "4.destiny": "You organize systems and deliver reliable results to the people around you. Share the process instead of carrying every responsibility alone, so others can work with confidence.",
+    "5.life_path": "You discover your way through change and freedom. Set a trial period and a way back before acting on an impulse, allowing new choices to expand without losing your footing.",
+    "5.destiny": "You create movement and let fresh air into fixed ways of thinking. Pair the stimulation you offer with useful information and a clear next step people can choose.",
+    "6.life_path": "Love and responsibility teach you how to nurture people and daily life. Define the help you can offer, and choose a division of care that lets you continue with ease.",
+    "6.destiny": "You care for people and bring warmth and harmony to a shared place. Respect others' independence, and make support concrete without treating your care as an obligation.",
+    "7.life_path": "Inquiry and reflection deepen your understanding of life. Instead of borrowing an answer too quickly, record your questions and evidence, then test them patiently.",
+    "7.destiny": "You explore complexity and bring others a view closer to the essence. Do not keep knowledge locked away; share one discovery in a form that matches the listener's interest.",
+    "8.life_path": "Your life moves through turning power into tangible results. Divide a large goal into measurable stages and consider the effects of the power you use, not only the outcome.",
+    "8.destiny": "You gather resources and turn plans into practical results for others. Listen to the conditions of those involved instead of forcing an outcome, and build what can last.",
+    "9.life_path": "You grow a broad perspective by completing cycles and letting go. Sort out what is ready to end, then pass what you learned quietly to another person or a new activity.",
+    "9.destiny": "You bring meaning to people and society through empathy and service. Do not try to save everything; choose the range for which you can take responsibility now.",
+    "11.life_path": "Your life theme is to receive intuition and insight, then grow them into direction. Separate impressions from facts in writing and turn them into a small test you can carry out.",
+    "11.destiny": "You sense possibilities and bring new insight and perspective to others. Do not rely on impressions alone to persuade; express the core simply through words and action.",
+    "22.life_path": "Your life lesson is to build a large vision into a real structure. Divide the ideal among partners and stages, then begin with the foundation you can complete today.",
+    "22.destiny": "You connect broad vision with practical skill and deliver results that remain useful. Share the purpose and progress, while keeping your responsibilities within a trustworthy scope.",
+    "33.life_path": "You learn how to use devotion and compassion while helping people grow. Do not carry every pain yourself; check your capacity and choose support that can continue.",
+    "33.destiny": "You turn deep care into practical support and bring reassurance and hope to others. Listen to what people want instead of imposing what is right, then choose a step together.",
+}
