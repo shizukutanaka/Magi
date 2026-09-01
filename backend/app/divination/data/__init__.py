@@ -1,0 +1,1 @@
+"""Typed static interpretation data."""
