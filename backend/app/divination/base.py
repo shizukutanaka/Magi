@@ -1,15 +1,16 @@
 """Shared models and protocol for divination engines."""
 
 from datetime import UTC, date, datetime, time
-from typing import TYPE_CHECKING, Literal, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from pydantic import BaseModel, Field
+
+from app.i18n import Lang
 
 if TYPE_CHECKING:
     from app.divination.seed import SeededRandom
 
 DISCLAIMER = "本鑑定はエンターテインメントおよび内省の補助を目的とし、医療・法律・投資の助言ではありません。"
-Lang = Literal["ja", "en"]
 
 
 class DivinationInput(BaseModel):

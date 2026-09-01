@@ -14,7 +14,7 @@ from app.divination.service import (
     cast_reading,
 )
 from app.divination.service import daily_reading as build_daily_reading
-from app.i18n import DEFAULT_LANG, resolve_lang, t
+from app.i18n import Lang, resolve_lang, t
 
 router = APIRouter(tags=["readings"])
 
@@ -41,16 +41,16 @@ def _cast(
     engine_id: str,
     inp: DivinationInput,
     subject_key: str,
-    lang: str = DEFAULT_LANG,
+    lang: Lang,
 ):
     try:
-        return cast_reading(engine_id, inp, subject_key, resolve_lang(lang, None))
+        return cast_reading(engine_id, inp, subject_key, lang)
     except UnknownEngineError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown engine: {engine_id}") from exc
     except MissingFieldsError as exc:
         raise HTTPException(status_code=422, detail={"missing_fields": exc.fields}) from exc
     except UnknownSpreadError as exc:
-        raise HTTPException(status_code=422, detail=t(resolve_lang(lang, None), "error.unknown_spread")) from exc
+        raise HTTPException(status_code=422, detail=t(lang, "error.unknown_spread")) from exc
 
 
 @router.post("/readings")
@@ -69,6 +69,7 @@ def daily_reading(
     _: None = Depends(rate_limit),
     accept_language: str | None = Header(default=None, alias="Accept-Language"),
 ):
+    lang = resolve_lang(payload.lang, accept_language)
     inp = DivinationInput(
         target_date=payload.target_date,
         question=payload.question,
@@ -78,7 +79,6 @@ def daily_reading(
         options=payload.options,
     )
     try:
-        return build_daily_reading(inp, payload.subject_key, resolve_lang(payload.lang, accept_language))
+        return build_daily_reading(inp, payload.subject_key, lang)
     except UnknownSpreadError as exc:
-        lang = resolve_lang(payload.lang, accept_language)
         raise HTTPException(status_code=422, detail=t(lang, "error.unknown_spread")) from exc

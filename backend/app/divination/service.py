@@ -51,7 +51,6 @@ def cast_reading(
 def select_daily_engines(
     inp: DivinationInput,
     subject_key: str,
-    lang: Lang = DEFAULT_LANG,
 ) -> list[DivinationEngine]:
     """Select up to three eligible engines from distinct traditions."""
     available = [
@@ -76,7 +75,7 @@ def daily_reading(
 ) -> dict:
     """Return the deterministic three-tradition daily reading."""
     _validate_spread(inp)
-    selection = select_daily_engines(inp, subject_key, lang)
+    selection = select_daily_engines(inp, subject_key)
     readings = [cast_reading(engine.id, inp, subject_key, lang) for engine in selection]
     scores = [reading.score for reading in readings if reading.score is not None]
     names = [symbol.name for reading in readings for symbol in reading.drawn]

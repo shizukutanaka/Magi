@@ -4,6 +4,7 @@ const CATALOGS = {
     "nav.reading": "鑑定",
     "nav.history": "履歴",
     "nav.aria": "メインナビゲーション",
+    "page.title": "Magi — 今日の三賢者",
     "language.label": "言語",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "今日の三賢者",
@@ -57,15 +58,13 @@ const CATALOGS = {
     "error.request_failed": "リクエストに失敗しました。",
     "error.missing": "入力が不足しています：{fields}",
     "error.retry": "{seconds}秒待ってから再試行してください。",
-    "label.past": "過去",
-    "label.present": "現在",
-    "label.future": "未来",
   },
   en: {
     "nav.daily": "Daily Magi",
     "nav.reading": "Reading",
     "nav.history": "History",
     "nav.aria": "Main navigation",
+    "page.title": "Magi — Daily Magi",
     "language.label": "Language",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "Daily Magi",
@@ -119,9 +118,6 @@ const CATALOGS = {
     "error.request_failed": "The request failed.",
     "error.missing": "Missing input: {fields}",
     "error.retry": "Please try again in {seconds} seconds.",
-    "label.past": "Past",
-    "label.present": "Present",
-    "label.future": "Future",
   },
 };
 
@@ -150,7 +146,7 @@ export function setLanguage(lang, { persist = true } = {}) {
   activeLang = SUPPORTED_LANGS.includes(lang) ? lang : "ja";
   if (persist) localStorage.setItem("magi.lang", activeLang);
   document.documentElement.lang = activeLang;
-  document.title = activeLang === "en" ? "Magi — Daily Magi" : "Magi — 今日の三賢者";
+  document.title = translate("page.title");
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = translate(node.dataset.i18n);
   });

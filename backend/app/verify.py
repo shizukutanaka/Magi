@@ -99,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
         params = _query_values(args.share_url)
         inp = _input_from_query(params)
         subject_key = params.get("s") or "anonymous"
-        lang = resolve_lang(args.lang, params.get("lang"))
+        lang = resolve_lang(args.lang or params.get("lang"), None)
         if params.get("daily") == "1":
             result = daily_reading(inp, subject_key, lang)
         else:

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from app.divination.base import DrawnSymbol, LuckyItems, Reading, ReadingSection
 from app.divination.seed import SeededRandom
-from app.i18n import Lang, t
+from app.i18n import DEFAULT_LANG, INTERPRETATION_LANGS, Lang, t
 
 
 def finish(
@@ -22,6 +22,9 @@ def finish(
     colors = ["indigo", "gold", "young_green", "vermilion", "white"]
     directions = ["east", "west", "south", "north"]
     items = ["notebook", "teacup", "key", "plant", "clock"]
+    interpretation_lang = (
+        lang if lang in INTERPRETATION_LANGS[engine_id] else DEFAULT_LANG
+    )
     return Reading(
         engine_id=engine_id,
         engine_name=engine_name,
@@ -40,5 +43,5 @@ def finish(
         generated_at=datetime.now(UTC),
         disclaimer=t(lang, "disclaimer"),
         lang=lang,
-        interpretation_lang="ja",
+        interpretation_lang=interpretation_lang,
     )

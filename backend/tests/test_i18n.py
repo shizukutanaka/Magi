@@ -8,7 +8,7 @@ from app.divination.data.omikuji import CATEGORIES
 from app.divination.registry import all_engines, get_engine
 from app.divination.seed import SeededRandom, build_seed
 from app.divination.service import daily_reading, select_daily_engines
-from app.i18n import CATALOGS, DEFAULT_LANG, resolve_lang, t
+from app.i18n import CATALOGS, DEFAULT_LANG, INTERPRETATION_LANGS, resolve_lang, t
 
 
 def input_for(engine):
@@ -52,8 +52,8 @@ def test_daily_selection_and_seeds_are_language_independent():
         birth_date=date(1990, 1, 2),
         full_name="Taro Yamada",
     )
-    assert [engine.id for engine in select_daily_engines(inp, "daily", "ja")] == [
-        engine.id for engine in select_daily_engines(inp, "daily", "en")
+    assert [engine.id for engine in select_daily_engines(inp, "daily")] == [
+        engine.id for engine in select_daily_engines(inp, "daily")
     ]
     japanese = daily_reading(inp, "daily", "ja")
     english = daily_reading(inp, "daily", "en")
@@ -137,3 +137,8 @@ def test_lucky_items_keep_the_legacy_choice_order():
         "direction": "東",
         "item": "時計",
     }
+
+
+def test_interpretation_language_follows_registry(monkeypatch):
+    monkeypatch.setitem(INTERPRETATION_LANGS, "tarot", ("ja", "en"))
+    assert cast("tarot", "en").interpretation_lang == "en"
