@@ -251,9 +251,24 @@ textarea {
 
   nav {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   nav button {
     flex: 1;
+  }
+
+  .language-switch {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  form,
+  form label,
+  form input,
+  form select,
+  form textarea {
+    min-width: 0;
+    max-width: 100%;
   }
 }

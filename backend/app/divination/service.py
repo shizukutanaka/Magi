@@ -32,7 +32,7 @@ def _add_question_focus(reading: Reading, inp: DivinationInput, lang: Lang) -> R
         return reading
     focus = ReadingSection(
         title=t(lang, "section.focus", topic=t(lang, f"topic.{topic}")),
-        body=t(lang, f"body.focus.{topic}", symbol=reading.drawn[0].name),
+        body=t(lang, f"body.focus.{reading.engine_id}.{topic}"),
     )
     sections = list(reading.sections)
     sections.insert(min(1, len(sections)), focus)
