@@ -7,7 +7,7 @@ from app.divination.base import DivinationInput
 from app.divination.data.omikuji import CATEGORIES
 from app.divination.registry import all_engines, get_engine
 from app.divination.seed import SeededRandom, build_seed
-from app.divination.service import daily_reading, select_daily_engines
+from app.divination.service import daily_reading
 from app.i18n import CATALOGS, DEFAULT_LANG, INTERPRETATION_LANGS, resolve_lang, t
 
 
@@ -52,11 +52,11 @@ def test_daily_selection_and_seeds_are_language_independent():
         birth_date=date(1990, 1, 2),
         full_name="Taro Yamada",
     )
-    assert [engine.id for engine in select_daily_engines(inp, "daily")] == [
-        engine.id for engine in select_daily_engines(inp, "daily")
-    ]
     japanese = daily_reading(inp, "daily", "ja")
     english = daily_reading(inp, "daily", "en")
+    assert [reading.engine_id for reading in japanese["readings"]] == [
+        reading.engine_id for reading in english["readings"]
+    ]
     assert [reading.seed for reading in japanese["readings"]] == [
         reading.seed for reading in english["readings"]
     ]
