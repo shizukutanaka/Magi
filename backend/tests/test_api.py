@@ -46,6 +46,29 @@ def test_removed_birth_time_is_ignored():
     assert response.status_code == 200
 
 
+def test_oversized_question_is_rejected():
+    response = client.post(
+        "/api/v1/readings",
+        json={
+            "engine_id": "tarot",
+            "input": {"target_date": "2026-01-01", "question": "あ" * 201},
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_oversized_subject_key_is_rejected():
+    response = client.post(
+        "/api/v1/readings",
+        json={
+            "engine_id": "tarot",
+            "input": {"target_date": "2026-01-01"},
+            "subject_key": "a" * 65,
+        },
+    )
+    assert response.status_code == 422
+
+
 def test_systems_can_be_localized():
     query_response = client.get("/api/v1/systems?lang=en")
     header_response = client.get("/api/v1/systems", headers={"Accept-Language": "en"})

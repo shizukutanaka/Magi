@@ -11,3 +11,10 @@ def get_rate_limit_per_minute() -> int:
         return int(value)
     except ValueError:
         return 60
+
+
+def get_trust_proxy_headers() -> bool:
+    value = os.getenv("MAGI_TRUST_PROXY")
+    if value is None:
+        return False
+    return value.strip().lower() in ("1", "true", "yes", "on")

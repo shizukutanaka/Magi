@@ -135,6 +135,7 @@ MESSAGES = {
     "body.mayan.guidance": "The Tzolk'in calculation is an abridged method based on the GMT correlation constant 584283.",
     "body.geomancy.guidance": "Trace the shield chart from its mothers to the Judge, reading the links between stages rather than any symbol alone.",
     "body.geomancy.story": "First comes {name_right}. {witness_right} Then comes {name_left}. {witness_left}",
+    "error.rate_limited": "You have reached the request limit. Please wait a moment and try again.",
     "error.unknown_spread": "Unknown spread.",
     "daily.overview": "{count} traditions point to {names} as shared clues.",
     "disclaimer": "This reading is for entertainment and self-reflection, not medical, legal, or investment advice.",

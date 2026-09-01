@@ -135,6 +135,7 @@ MESSAGES = {
     "body.mayan.guidance": "ツォルキンはGMT相関定数584283に基づく簡略計算です。",
     "body.geomancy.guidance": "盾形図の母体から判事までの流れをたどり、単独の象徴ではなく各段階のつながりとして読み解いてください。",
     "body.geomancy.story": "はじめに{name_right}。{witness_right}続いて{name_left}。{witness_left}",
+    "error.rate_limited": "リクエスト数の上限に達しました。しばらく待ってから再試行してください。",
     "error.unknown_spread": "未知のスプレッドです。",
     "daily.overview": "{count}つの流派が、{names}を共通の手がかりとして示しています。",
     "disclaimer": "本鑑定はエンターテインメントおよび内省の補助を目的とし、医療・法律・投資の助言ではありません。",

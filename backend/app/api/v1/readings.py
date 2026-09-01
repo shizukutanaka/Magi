@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.ratelimit import rate_limit
-from app.divination.base import DivinationInput
+from app.divination.base import DivinationInput, OptionText
 from app.divination.registry import UnknownEngineError
 from app.divination.service import (
     MissingFieldsError,
@@ -22,17 +22,17 @@ router = APIRouter(tags=["readings"])
 class ReadingRequest(BaseModel):
     engine_id: str
     input: DivinationInput
-    subject_key: str = "anonymous"
+    subject_key: str = Field(default="anonymous", max_length=64)
     lang: str | None = None
 
 
 class DailyRequest(BaseModel):
     target_date: date = Field(default_factory=date.today)
-    question: str | None = None
+    question: str | None = Field(default=None, max_length=200)
     birth_date: date | None = None
-    full_name: str | None = None
-    options: dict[str, str] = Field(default_factory=dict)
-    subject_key: str = "anonymous"
+    full_name: str | None = Field(default=None, max_length=100)
+    options: dict[OptionText, OptionText] = Field(default_factory=dict)
+    subject_key: str = Field(default="anonymous", max_length=64)
     lang: str | None = None
 
 

@@ -7,7 +7,8 @@ from threading import Lock
 
 from fastapi import HTTPException, Request
 
-from app.core.config import get_rate_limit_per_minute
+from app.core.config import get_rate_limit_per_minute, get_trust_proxy_headers
+from app.i18n import resolve_lang, t
 
 
 class RateLimitExceeded(Exception):  # noqa: N818
@@ -50,7 +51,7 @@ rate_limiter = RateLimiter(limit=get_rate_limit_per_minute(), window_seconds=60)
 
 
 def rate_limit(request: Request) -> None:
-    forwarded_for = request.headers.get("x-forwarded-for")
+    forwarded_for = request.headers.get("x-forwarded-for") if get_trust_proxy_headers() else None
     if forwarded_for:
         client_key = forwarded_for.split(",", 1)[0].strip()
     else:
@@ -58,8 +59,9 @@ def rate_limit(request: Request) -> None:
     try:
         rate_limiter.check(client_key)
     except RateLimitExceeded as exc:
+        lang = resolve_lang(None, request.headers.get("accept-language"))
         raise HTTPException(
             status_code=429,
-            detail="リクエスト数の上限に達しました。しばらく待ってから再試行してください。",
+            detail=t(lang, "error.rate_limited"),
             headers={"Retry-After": str(exc.retry_after)},
         ) from exc

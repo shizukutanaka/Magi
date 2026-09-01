@@ -1,7 +1,7 @@
 """Shared models and protocol for divination engines."""
 
 from datetime import UTC, date, datetime
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Annotated, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -13,12 +13,15 @@ if TYPE_CHECKING:
 DISCLAIMER = "本鑑定はエンターテインメントおよび内省の補助を目的とし、医療・法律・投資の助言ではありません。"
 
 
+OptionText = Annotated[str, Field(max_length=64)]
+
+
 class DivinationInput(BaseModel):
     target_date: date
-    question: str | None = None
+    question: str | None = Field(default=None, max_length=200)
     birth_date: date | None = None
-    full_name: str | None = None
-    options: dict[str, str] = Field(default_factory=dict)
+    full_name: str | None = Field(default=None, max_length=100)
+    options: dict[OptionText, OptionText] = Field(default_factory=dict)
 
 
 class DrawnSymbol(BaseModel):

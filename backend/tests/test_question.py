@@ -13,7 +13,7 @@ from app.i18n import t
 CJK = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
 
 
-def test_question_classification_is_deterministic_and_language_independent():
+def test_question_classification_is_deterministic():
     question = "What is my work direction?"
     assert classify_question(question) == classify_question(question) == "work"
 
@@ -30,6 +30,19 @@ def test_question_classification_is_deterministic_and_language_independent():
 )
 def test_question_classification_examples(question, expected):
     assert classify_question(question) == expected
+
+
+@pytest.mark.parametrize(
+    "question",
+    ["好きな人に告白すべきか", "How can I tell my crush how I feel?"],
+)
+def test_question_topic_and_focus_index_are_language_independent(question):
+    inp = DivinationInput(target_date=date(2026, 9, 1), question=question)
+    japanese = cast_reading("tarot", inp, "question", "ja")
+    english = cast_reading("tarot", inp, "question", "en")
+    assert classify_question(question) == "love"
+    assert japanese.sections[1].title == t("ja", "section.focus", topic="恋愛")
+    assert english.sections[1].title == t("en", "section.focus", topic="Love")
 
 
 def test_question_focus_is_localized_without_changing_topic():

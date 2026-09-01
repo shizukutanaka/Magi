@@ -15,7 +15,6 @@ TOPICS: tuple[str, ...] = (
 KEYWORDS: dict[str, tuple[str, ...]] = {
     "love": (
         "恋",
-        "恋愛",
         "好き",
         "片思い",
         "交際",
@@ -126,7 +125,6 @@ KEYWORDS: dict[str, tuple[str, ...]] = {
         "should i",
         "move",
     ),
-    "general": (),
 }
 
 
@@ -136,25 +134,20 @@ def classify_question(question: str | None) -> str | None:
     if not normalized:
         return None
 
-    scores: list[tuple[int, int, int, str]] = []
+    ranked: list[tuple[int, int, int, str]] = []
     for topic_index, topic in enumerate(TOPICS):
-        matches = [
-            normalized.find(keyword)
-            for keyword in KEYWORDS[topic]
-            if normalized.find(keyword) >= 0
-        ]
-        scores.append(
-            (
-                sum(normalized.count(keyword) for keyword in KEYWORDS[topic]),
-                min(matches, default=len(normalized) + 1),
-                topic_index,
-                topic,
-            )
-        )
-    best_score = max(score[0] for score in scores)
-    if best_score == 0:
+        if topic not in KEYWORDS:
+            continue
+        count = 0
+        earliest = len(normalized)
+        for keyword in KEYWORDS[topic]:
+            index = normalized.find(keyword)
+            if index < 0:
+                continue
+            count += normalized.count(keyword)
+            earliest = min(earliest, index)
+        if count:
+            ranked.append((-count, earliest, topic_index, topic))
+    if not ranked:
         return "general"
-    return min(
-        (score for score in scores if score[0] == best_score),
-        key=lambda score: (score[1], score[2]),
-    )[3]
+    return min(ranked)[3]
