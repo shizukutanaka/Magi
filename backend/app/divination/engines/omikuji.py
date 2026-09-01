@@ -12,12 +12,13 @@ class OmikujiEngine:
     name = "おみくじ"
     tradition = "日本"
     required_fields = frozenset()
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         grade = rng.pick([grade for grade, weight, *_ in GRADES for _ in range(weight)])
         row = next(row for row in GRADES if row[0] == grade)
         advice = dict(zip(CATEGORIES, row[2:], strict=True))
-        drawn = [DrawnSymbol(key=grade.lower(), name=grade, position="本籤")]
+        drawn = [DrawnSymbol(key=grade.lower(), name=grade, position="本籤", image_hint=f"omikuji/{grade.lower()}")]
         sections = [ReadingSection(title="総合", body=f"運勢は{grade}。{advice['願望']}")]
         sections.extend(ReadingSection(title=title, body=text) for title, text in advice.items() if title != "願望")
         return finish(

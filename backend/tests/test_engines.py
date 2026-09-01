@@ -29,6 +29,14 @@ def test_engine_reading_schema(engine_id):
 
 
 @pytest.mark.parametrize("engine_id", ENGINE_IDS)
+def test_image_hints_are_static_asset_paths(engine_id):
+    engine = get_engine(engine_id)
+    inp = input_for(engine)
+    reading = engine.cast(inp, SeededRandom(build_seed("image", engine.id, inp)))
+    assert all(symbol.image_hint == f"{engine.id}/{symbol.key}" for symbol in reading.drawn)
+
+
+@pytest.mark.parametrize("engine_id", ENGINE_IDS)
 def test_required_fields_are_enforced(engine_id):
     engine = get_engine(engine_id)
     if not engine.required_fields:

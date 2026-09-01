@@ -44,6 +44,7 @@ def _cast(engine_id: str, inp: DivinationInput, subject_key: str):
     missing = [field for field in engine.required_fields if getattr(inp, field, None) is None]
     if missing:
         raise HTTPException(status_code=422, detail={"missing_fields": sorted(missing)})
+    inp = inp.model_copy(update={"options": {**engine.default_options, **inp.options}})
     if engine.id == "tarot":
         _validate_spread(inp)
     seed = build_seed(subject_key, engine.id, inp)

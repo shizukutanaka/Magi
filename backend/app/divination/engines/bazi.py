@@ -23,6 +23,7 @@ class BaziEngine:
     name = "干支・四柱推命（略式）"
     tradition = "中国"
     required_fields = frozenset({"birth_date"})
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:
@@ -32,8 +33,18 @@ class BaziEngine:
         year_stem, year_branch = STEMS[year_index % 10], BRANCHES[year_index % 12]
         day_stem, day_branch = STEMS[day_index % 10], BRANCHES[day_index % 12]
         drawn = [
-            DrawnSymbol(key=f"year-{year_index}", name=f"{year_stem}{year_branch}", position="年柱"),
-            DrawnSymbol(key=f"day-{day_index}", name=f"{day_stem}{day_branch}", position="日柱"),
+            DrawnSymbol(
+                key=f"year-{year_index}",
+                name=f"{year_stem}{year_branch}",
+                position="年柱",
+                image_hint=f"bazi/year-{year_index}",
+            ),
+            DrawnSymbol(
+                key=f"day-{day_index}",
+                name=f"{day_stem}{day_branch}",
+                position="日柱",
+                image_hint=f"bazi/day-{day_index}",
+            ),
         ]
         return finish(
             self.id, self.name, self.tradition, rng.seed, drawn,
