@@ -71,6 +71,31 @@ source .venv/bin/activate
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
+## self-host（Docker）
+
+Dockerがあれば、リポジトリのルートで次の2コマンドだけで起動できます。
+
+```bash
+docker build -t magi .
+docker run --rm -p 8000:8000 magi
+```
+
+起動後に <http://localhost:8000/> を開いてください。データベースや別の
+バッキングサービスは必要ありません。
+
+## 鑑定を検証する
+
+共有URLを受け取った人は、サーバ・ネットワーク・アカウントなしで、同じ鑑定を
+手元で再現できます。バックエンドディレクトリで次を実行してください。
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m app.verify '<共有URL>' --expect-seed <seed>
+```
+
+`seed` が共有URLの鑑定結果と一致するかを確認できます。
+
 ## テスト
 
 ```bash

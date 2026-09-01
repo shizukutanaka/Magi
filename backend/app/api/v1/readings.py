@@ -1,6 +1,5 @@
 """Reading endpoints."""
 
-import hashlib
 from datetime import date, time
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,9 +7,13 @@ from pydantic import BaseModel, Field
 
 from app.core.ratelimit import rate_limit
 from app.divination.base import DivinationInput
-from app.divination.engines.tarot import ALLOWED_SPREADS
-from app.divination.registry import UnknownEngineError, all_engines, get_engine
-from app.divination.seed import SeededRandom, build_seed
+from app.divination.registry import UnknownEngineError
+from app.divination.service import (
+    MissingFieldsError,
+    UnknownSpreadError,
+    cast_reading,
+)
+from app.divination.service import daily_reading as build_daily_reading
 
 router = APIRouter(tags=["readings"])
 
@@ -31,24 +34,15 @@ class DailyRequest(BaseModel):
     subject_key: str = "anonymous"
 
 
-def _validate_spread(inp: DivinationInput) -> None:
-    if inp.options.get("spread", "three-card") not in ALLOWED_SPREADS:
-        raise HTTPException(status_code=422, detail="未知のスプレッドです。")
-
-
 def _cast(engine_id: str, inp: DivinationInput, subject_key: str):
     try:
-        engine = get_engine(engine_id)
+        return cast_reading(engine_id, inp, subject_key)
     except UnknownEngineError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown engine: {engine_id}") from exc
-    missing = [field for field in engine.required_fields if getattr(inp, field, None) is None]
-    if missing:
-        raise HTTPException(status_code=422, detail={"missing_fields": sorted(missing)})
-    inp = inp.model_copy(update={"options": {**engine.default_options, **inp.options}})
-    if engine.id == "tarot":
-        _validate_spread(inp)
-    seed = build_seed(subject_key, engine.id, inp)
-    return engine.cast(inp, SeededRandom(seed))
+    except MissingFieldsError as exc:
+        raise HTTPException(status_code=422, detail={"missing_fields": exc.fields}) from exc
+    except UnknownSpreadError as exc:
+        raise HTTPException(status_code=422, detail="未知のスプレッドです。") from exc
 
 
 @router.post("/readings")
@@ -66,26 +60,7 @@ def daily_reading(payload: DailyRequest, _: None = Depends(rate_limit)):
         full_name=payload.full_name,
         options=payload.options,
     )
-    _validate_spread(inp)
-    available = [
-        engine
-        for engine in all_engines()
-        if all(getattr(inp, field, None) is not None for field in engine.required_fields)
-    ]
-    selection_rng = SeededRandom(hashlib.sha256(f"{payload.subject_key}|{payload.target_date}".encode()).hexdigest())
-    selection = []
-    traditions = set()
-    for engine in selection_rng.sample(available, len(available)):
-        if engine.tradition not in traditions:
-            selection.append(engine)
-            traditions.add(engine.tradition)
-    selection = selection[:3]
-    readings = [_cast(engine.id, inp, payload.subject_key) for engine in selection]
-    scores = [reading.score for reading in readings if reading.score is not None]
-    names = [symbol.name for reading in readings for symbol in reading.drawn]
-    overview = f"{len(readings)}つの流派が、{ '・'.join(names[:3]) }を共通の手がかりとして示しています。"
-    return {
-        "readings": readings,
-        "overview": overview,
-        "score": round(sum(scores) / len(scores)) if scores else None,
-    }
+    try:
+        return build_daily_reading(inp, payload.subject_key)
+    except UnknownSpreadError as exc:
+        raise HTTPException(status_code=422, detail="未知のスプレッドです。") from exc
