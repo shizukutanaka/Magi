@@ -14,7 +14,7 @@ def test_systems_are_all_unconditionally_available():
     response = client.get("/api/v1/systems")
     assert response.status_code == 200
     systems = response.json()
-    assert len(systems) == 8
+    assert len(systems) == 9
     assert {item["id"] for item in systems} == {
         "tarot",
         "iching",
@@ -24,6 +24,7 @@ def test_systems_are_all_unconditionally_available():
         "numerology",
         "bazi",
         "mayan",
+        "geomancy",
     }
     assert all(set(item) == {"id", "name", "tradition", "required_fields"} for item in systems)
 
