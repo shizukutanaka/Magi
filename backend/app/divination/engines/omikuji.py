@@ -25,7 +25,7 @@ class OmikujiEngine:
             index: dt(lang, self.id, f"{grade_key}.category.{index}", text)
             for index, text in enumerate(japanese_advice)
         }
-        drawn = [DrawnSymbol(key=grade_key, name=grade_name, position=t(lang, "position.omikuji.drawn"), image_hint=f"omikuji/{grade_key}")]
+        drawn = [DrawnSymbol(key=grade_key, name=grade_name, position=t(lang, "position.omikuji.drawn"))]
         sections = [
             ReadingSection(
                 title=t(lang, "section.overall"),

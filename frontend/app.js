@@ -45,12 +45,10 @@ function updateFields() {
   const system = selectedSystem();
   const required = new Set(system?.required_fields || []);
   document.querySelector("#birth-date-field").hidden = !required.has("birth_date");
-  document.querySelector("#birth-time-field").hidden = !required.has("birth_time");
   document.querySelector("#question-field").hidden = false;
   document.querySelector("#full-name-field").hidden = false;
   document.querySelector("#spread-field").hidden = engineSelect.value !== "tarot";
   document.querySelector("#birth-date").required = required.has("birth_date");
-  document.querySelector("#birth-time").required = required.has("birth_time");
   document.querySelector("#full-name").required = required.has("full_name");
   document.querySelector("#question").required = required.has("question");
   updateLabel("#question-label", required.has("question") ? "form.question" : "form.question_optional");
@@ -79,7 +77,6 @@ function inputFromForm() {
     target_date: document.querySelector("#target-date").value,
     question: document.querySelector("#question").value || undefined,
     birth_date: document.querySelector("#birth-date").value || undefined,
-    birth_time: document.querySelector("#birth-time").value || undefined,
     full_name: document.querySelector("#full-name").value || undefined,
     options: {},
   };
@@ -96,7 +93,6 @@ function fillForm(params) {
   document.querySelector("#target-date").value = params.get("date") || today();
   document.querySelector("#question").value = params.get("q") || "";
   document.querySelector("#birth-date").value = params.get("birth") || "";
-  document.querySelector("#birth-time").value = params.get("time") || "";
   document.querySelector("#full-name").value = params.get("name") || "";
   document.querySelector("#spread").value = params.get("spread") || "three-card";
   updateFields();
@@ -108,7 +104,6 @@ function queryForReading(engineId, input, subjectKey, lang = state.lang) {
   params.set("date", input.target_date);
   if (input.question) params.set("q", input.question);
   if (input.birth_date) params.set("birth", input.birth_date);
-  if (input.birth_time) params.set("time", input.birth_time);
   if (input.full_name) params.set("name", input.full_name);
   if (input.options?.spread) params.set("spread", input.options.spread);
   params.set("s", subjectKey);
@@ -122,7 +117,6 @@ function queryForDaily(input, subjectKey, lang = state.lang) {
   params.set("date", input.target_date);
   if (input.question) params.set("q", input.question);
   if (input.birth_date) params.set("birth", input.birth_date);
-  if (input.birth_time) params.set("time", input.birth_time);
   if (input.full_name) params.set("name", input.full_name);
   params.set("s", subjectKey);
   params.set("lang", lang);
@@ -248,7 +242,6 @@ async function runDaily(params = {}) {
     target_date: params.date || today(),
     question: params.question || undefined,
     birth_date: params.birth_date || undefined,
-    birth_time: params.birth_time || undefined,
     full_name: params.full_name || undefined,
     options: {},
   };
@@ -337,7 +330,6 @@ async function changeLanguage(lang) {
         date: state.activeInput.target_date,
         question: state.activeInput.question,
         birth_date: state.activeInput.birth_date,
-        birth_time: state.activeInput.birth_time,
         full_name: state.activeInput.full_name,
         subjectKey: state.activeSubjectKey,
       });
@@ -366,7 +358,6 @@ async function init() {
           date: params.get("date") || today(),
           question: params.get("q"),
           birth_date: params.get("birth"),
-          birth_time: params.get("time"),
           full_name: params.get("name"),
           subjectKey: deepLinkSubject,
         });

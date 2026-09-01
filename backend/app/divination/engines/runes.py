@@ -27,7 +27,6 @@ class RunesEngine:
                     name=dt(lang, self.id, f"{rune.key}.name", rune.name_ja),
                     position=t(lang, f"position.runes.{position_key}"),
                     reversed=reversed_rune,
-                    image_hint=f"runes/{rune.key}",
                 )
             )
         first = runes[0]

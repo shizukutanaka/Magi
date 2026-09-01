@@ -2,8 +2,9 @@
 
 import hashlib
 
-from app.divination.base import DivinationEngine, DivinationInput, Reading
+from app.divination.base import DivinationEngine, DivinationInput, Reading, ReadingSection
 from app.divination.engines.tarot import ALLOWED_SPREADS
+from app.divination.question import classify_question
 from app.divination.registry import all_engines, get_engine
 from app.divination.seed import SeededRandom, build_seed
 from app.i18n import DEFAULT_LANG, Lang, t
@@ -23,6 +24,19 @@ class MissingFieldsError(ReadingError):
     def __init__(self, fields: list[str]) -> None:
         self.fields = sorted(fields)
         super().__init__(f"missing fields: {', '.join(self.fields)}")
+
+
+def _add_question_focus(reading: Reading, inp: DivinationInput, lang: Lang) -> Reading:
+    topic = classify_question(inp.question)
+    if topic is None or not reading.drawn:
+        return reading
+    focus = ReadingSection(
+        title=t(lang, "section.focus", topic=t(lang, f"topic.{topic}")),
+        body=t(lang, f"body.focus.{topic}", symbol=reading.drawn[0].name),
+    )
+    sections = list(reading.sections)
+    sections.insert(min(1, len(sections)), focus)
+    return reading.model_copy(update={"sections": sections})
 
 
 def _validate_spread(inp: DivinationInput) -> None:
@@ -45,7 +59,7 @@ def cast_reading(
     if engine.id == "tarot":
         _validate_spread(inp)
     seed = build_seed(subject_key, engine.id, inp)
-    return engine.cast(inp, SeededRandom(seed), lang)
+    return _add_question_focus(engine.cast(inp, SeededRandom(seed), lang), inp, lang)
 
 
 def select_daily_engines(

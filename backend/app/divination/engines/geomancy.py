@@ -67,7 +67,6 @@ class GeomancyEngine:
                 name=dt(lang, self.id, f"{figure.key}.name", figure.name),
                 position=t(lang, f"position.geomancy.{position}"),
                 reversed=False,
-                image_hint=f"geomancy/{figure.key}",
             )
             for figure, position in (
                 (right, "right_witness"),

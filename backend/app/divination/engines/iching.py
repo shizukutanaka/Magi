@@ -44,7 +44,6 @@ class IChingEngine:
                 key=f"hex-{primary.number:02d}",
                 name=primary_name,
                 position=t(lang, "position.iching.primary"),
-                image_hint=f"iching/hex-{primary.number:02d}",
             )
         ]
         if changed_number != number:
@@ -53,7 +52,6 @@ class IChingEngine:
                     key=f"hex-{changed.number:02d}",
                     name=changed_name,
                     position=t(lang, "position.iching.transformed"),
-                    image_hint=f"iching/hex-{changed.number:02d}",
                 )
             )
         return finish(

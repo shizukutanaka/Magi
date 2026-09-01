@@ -3,7 +3,7 @@
 import argparse
 import json
 import sys
-from datetime import date, time
+from datetime import date
 from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
@@ -34,12 +34,11 @@ def _input_from_query(params: dict[str, str]) -> DivinationInput:
             target_date=date.fromisoformat(params.get("date") or date.today().isoformat()),
             question=params.get("q") or None,
             birth_date=date.fromisoformat(params["birth"]) if params.get("birth") else None,
-            birth_time=time.fromisoformat(params["time"]) if params.get("time") else None,
             full_name=params.get("name") or None,
             options=options,
         )
     except (TypeError, ValueError) as exc:
-        raise ValueError("共有URLの日付または時刻を解釈できません。") from exc
+        raise ValueError("共有URLの日付を解釈できません。") from exc
 
 
 def _readings_from_result(result: dict | Reading) -> list[Reading]:
@@ -113,7 +112,6 @@ def main(argv: list[str] | None = None) -> int:
     except MissingFieldsError as exc:
         labels = {
             "birth_date": "生年月日",
-            "birth_time": "出生時刻",
             "full_name": "氏名",
             "question": "問い",
         }

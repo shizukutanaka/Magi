@@ -54,7 +54,6 @@ class MayanEngine:
                 key=f"kin-{kin}",
                 name=symbol,
                 position=t(lang, "position.mayan.birth_kin"),
-                image_hint=f"mayan/kin-{kin}",
             )
         ]
         return finish(

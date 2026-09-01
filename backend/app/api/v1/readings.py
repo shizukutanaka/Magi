@@ -1,6 +1,6 @@
 """Reading endpoints."""
 
-from datetime import date, time
+from datetime import date
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -30,7 +30,6 @@ class DailyRequest(BaseModel):
     target_date: date = Field(default_factory=date.today)
     question: str | None = None
     birth_date: date | None = None
-    birth_time: time | None = None
     full_name: str | None = None
     options: dict[str, str] = Field(default_factory=dict)
     subject_key: str = "anonymous"
@@ -74,7 +73,6 @@ def daily_reading(
         target_date=payload.target_date,
         question=payload.question,
         birth_date=payload.birth_date,
-        birth_time=payload.birth_time,
         full_name=payload.full_name,
         options=payload.options,
     )

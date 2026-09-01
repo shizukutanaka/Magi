@@ -39,7 +39,6 @@ class TarotEngine:
                     name=dt(lang, self.id, f"{card.key}.name", card.name_ja),
                     position=position,
                     reversed=reversed_card,
-                    image_hint=f"tarot/{card.key}",
                 )
             )
         lead = cards[0]

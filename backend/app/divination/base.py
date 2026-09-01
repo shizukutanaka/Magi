@@ -1,6 +1,6 @@
 """Shared models and protocol for divination engines."""
 
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Protocol
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,6 @@ class DivinationInput(BaseModel):
     target_date: date
     question: str | None = None
     birth_date: date | None = None
-    birth_time: time | None = None
     full_name: str | None = None
     options: dict[str, str] = Field(default_factory=dict)
 
@@ -27,7 +26,6 @@ class DrawnSymbol(BaseModel):
     name: str
     position: str
     reversed: bool = False
-    image_hint: str | None = None
 
 
 class ReadingSection(BaseModel):

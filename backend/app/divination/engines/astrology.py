@@ -46,9 +46,9 @@ class AstrologyEngine:
         localized_phase = dt(lang, self.id, f"moon_phase.{phase_index}", phase)
         localized_ruler = dt(lang, self.id, f"weekday.{ruler_index}", ruler)
         drawn = [
-            DrawnSymbol(key=sign, name=localized_sign, position=t(lang, "position.astrology.sun_sign"), image_hint=f"astrology/{sign}"),
-            DrawnSymbol(key=phase, name=localized_phase, position=t(lang, "position.astrology.moon_phase"), image_hint=f"astrology/{phase}"),
-            DrawnSymbol(key=ruler, name=localized_ruler, position=t(lang, "position.astrology.weekday_ruler"), image_hint=f"astrology/{ruler}"),
+            DrawnSymbol(key=sign, name=localized_sign, position=t(lang, "position.astrology.sun_sign")),
+            DrawnSymbol(key=phase, name=localized_phase, position=t(lang, "position.astrology.moon_phase")),
+            DrawnSymbol(key=ruler, name=localized_ruler, position=t(lang, "position.astrology.weekday_ruler")),
         ]
         return finish(
             self.id, t(lang, "engine.astrology.name"), t(lang, "engine.astrology.tradition"), rng.seed, drawn,

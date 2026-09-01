@@ -35,6 +35,17 @@ def test_reading_success():
     assert response.json()["engine_id"] == "tarot"
 
 
+def test_removed_birth_time_is_ignored():
+    response = client.post(
+        "/api/v1/readings",
+        json={
+            "engine_id": "tarot",
+            "input": {"target_date": "2026-01-01", "birth_time": "12:34"},
+        },
+    )
+    assert response.status_code == 200
+
+
 def test_systems_can_be_localized():
     query_response = client.get("/api/v1/systems?lang=en")
     header_response = client.get("/api/v1/systems", headers={"Accept-Language": "en"})

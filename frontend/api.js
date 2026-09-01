@@ -2,7 +2,6 @@ import { currentLanguage, translate } from "./i18n.js";
 
 const FIELD_NAMES = {
   birth_date: "form.birth_date",
-  birth_time: "form.birth_time",
   full_name: "form.full_name",
   question: "form.question",
 };
@@ -62,7 +61,7 @@ export function createReading({ engine_id, input, subject_key, lang = currentLan
   });
 }
 
-export function dailyReading({ target_date, question, birth_date, birth_time, full_name, options, subject_key, lang = currentLanguage() }) {
+export function dailyReading({ target_date, question, birth_date, full_name, options, subject_key, lang = currentLanguage() }) {
   return requestJson("/api/v1/readings/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -70,7 +69,6 @@ export function dailyReading({ target_date, question, birth_date, birth_time, fu
       target_date,
       question,
       birth_date,
-      birth_time,
       full_name,
       options,
       subject_key,

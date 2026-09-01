@@ -59,13 +59,11 @@ class BaziEngine:
                 key=f"year-{year_index}",
                 name=year_pillar,
                 position=t(lang, "position.bazi.year_pillar"),
-                image_hint=f"bazi/year-{year_index}",
             ),
             DrawnSymbol(
                 key=f"day-{day_index}",
                 name=day_pillar,
                 position=t(lang, "position.bazi.day_pillar"),
-                image_hint=f"bazi/day-{day_index}",
             ),
         ]
         return finish(
