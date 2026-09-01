@@ -28,7 +28,7 @@ class OmikujiEngine:
         drawn = [DrawnSymbol(key=grade_key, name=grade_name, position=t(lang, "position.omikuji.drawn"), image_hint=f"omikuji/{grade_key}")]
         sections = [
             ReadingSection(
-                title=t(lang, "section.omikuji.0"),
+                title=t(lang, "section.overall"),
                 body=t(
                     lang,
                     "body.omikuji.overall",

@@ -24,6 +24,9 @@ TRANSLATABLE_KEYS: frozenset[str] = frozenset(
         *(f"branch.{index}" for index in range(len(BRANCHES))),
         *(f"animal.{index}" for index in range(len(ANIMALS))),
         *(f"element.{index}" for index in range(len(ELEMENTS))),
-        *(f"compatibility.{branch}" for branch in COMPATIBILITY),
+        *(
+            f"compatibility.{BRANCHES.index(branch)}"
+            for branch in COMPATIBILITY
+        ),
     }
 )

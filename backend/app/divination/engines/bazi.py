@@ -25,7 +25,7 @@ def _localized_pillar(
 ) -> str:
     stem = dt(lang, "bazi", f"stem.{stem_index}", STEMS[stem_index])
     branch = dt(lang, "bazi", f"branch.{branch_index}", BRANCHES[branch_index])
-    return f"{stem}{branch}" if lang == "ja" else f"{stem} {branch}"
+    return t(lang, "format.bazi.pillar", stem=stem, branch=branch)
 
 
 class BaziEngine:
@@ -49,7 +49,10 @@ class BaziEngine:
         year_element = dt(lang, self.id, f"element.{year_index % 10}", ELEMENTS[year_index % 10])
         day_element = dt(lang, self.id, f"element.{day_index % 10}", ELEMENTS[day_index % 10])
         compatibility = dt(
-            lang, self.id, f"compatibility.{year_branch}", COMPATIBILITY[year_branch]
+            lang,
+            self.id,
+            f"compatibility.{year_branch_index}",
+            COMPATIBILITY[year_branch],
         )
         drawn = [
             DrawnSymbol(

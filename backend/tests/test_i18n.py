@@ -5,6 +5,7 @@ import pytest
 
 from app.divination.base import DivinationInput
 from app.divination.data.en import TEXTS as EN_TEXTS
+from app.divination.data.omikuji import CATEGORIES, GRADES
 from app.divination.engines._common import first_sentence
 from app.divination.interpretation import (
     TRANSLATABLE_KEYS_BY_ENGINE,
@@ -101,17 +102,43 @@ def test_english_framing_does_not_leak_japanese_values():
 def test_omikuji_categories_are_localized_catalog_sections():
     japanese = cast("omikuji", "ja")
     english = cast("omikuji", "en")
-    assert [section.title for section in english.sections] == [
-        t("en", f"section.omikuji.{index}") for index in range(7)
+    assert [section.title for section in japanese.sections] == [
+        t("ja", "section.overall"),
+        t("ja", "section.omikuji.1"),
+        t("ja", "section.omikuji.2"),
+        t("ja", "section.omikuji.3"),
+        t("ja", "section.omikuji.4"),
+        t("ja", "section.omikuji.5"),
+        t("ja", "section.omikuji.6"),
     ]
-    assert [section.title for section in japanese.sections] != [
-        section.title for section in english.sections
+    assert [section.title for section in english.sections] == [
+        t("en", "section.overall"),
+        t("en", "section.omikuji.1"),
+        t("en", "section.omikuji.2"),
+        t("en", "section.omikuji.3"),
+        t("en", "section.omikuji.4"),
+        t("en", "section.omikuji.5"),
+        t("en", "section.omikuji.6"),
     ]
     assert [section.body for section in english.sections] != [
         section.body for section in japanese.sections
     ]
     assert all(not CJK.search(section.body) for section in english.sections)
     assert all(not CJK.search(symbol.name) for symbol in english.drawn)
+
+
+def test_omikuji_japanese_sections_preserve_legacy_structure():
+    reading = cast("omikuji", "ja")
+    grade_key = reading.drawn[0].key
+    _, grade, _, *advice = next(row for row in GRADES if row[0] == grade_key)
+    assert [section.title for section in reading.sections] == [
+        t("ja", "section.overall"),
+        *CATEGORIES[1:],
+    ]
+    assert [section.body for section in reading.sections] == [
+        t("ja", "body.omikuji.overall", grade=grade, wish=advice[0]),
+        *advice[1:],
+    ]
 
 
 @pytest.mark.parametrize(
@@ -138,45 +165,19 @@ def test_catalog_translation_falls_back_to_japanese_and_missing_keys_are_loud():
 
 
 def test_interpretation_translation_keys_are_covered_and_nonempty():
-    for engine_id in (
-        "runes",
-        "geomancy",
-        "omikuji",
-        "astrology",
-        "bazi",
-        "mayan",
-    ):
+    for engine_id, texts in EN_TEXTS.items():
         keys = TRANSLATABLE_KEYS_BY_ENGINE[engine_id]
-        assert keys <= EN_TEXTS[engine_id].keys()
-        assert all(EN_TEXTS[engine_id][key] for key in keys)
-        assert all(not CJK.search(value) for value in EN_TEXTS[engine_id].values())
+        assert keys <= texts.keys()
+        assert all(texts[key] for key in keys)
+        assert all(not CJK.search(value) for value in texts.values())
 
 
 def test_interpretation_language_coverage():
-    assert interpretation_langs("runes") == ("ja", "en")
-    assert interpretation_langs("geomancy") == ("ja", "en")
-    assert interpretation_langs("omikuji") == ("ja", "en")
-    assert interpretation_langs("astrology") == ("ja", "en")
-    assert interpretation_langs("bazi") == ("ja", "en")
-    assert interpretation_langs("mayan") == ("ja", "en")
-    assert interpretation_langs("numerology") == ("ja", "en")
-    assert all(
-        interpretation_langs(engine.id) == ("ja",)
-        for engine in all_engines()
-        if engine.id in {"tarot", "iching"}
-    )
+    assert all(interpretation_langs(engine.id) == ("ja", "en") for engine in all_engines())
 
 
 def test_english_data_casts_contain_no_cjk():
-    for engine_id in (
-        "runes",
-        "geomancy",
-        "omikuji",
-        "astrology",
-        "bazi",
-        "mayan",
-        "numerology",
-    ):
+    for engine_id in (engine.id for engine in all_engines()):
         reading = cast(engine_id, "en")
         assert not CJK.search(reading.summary)
         assert all(not CJK.search(section.body) for section in reading.sections)
@@ -237,3 +238,15 @@ def test_lucky_items_keep_the_legacy_choice_order():
 def test_interpretation_language_follows_registry(monkeypatch):
     monkeypatch.setitem(TRANSLATABLE_KEYS_BY_ENGINE, "runes", frozenset({"fehu.name"}))
     assert cast("runes", "en").interpretation_lang == "en"
+
+
+def test_interpretation_language_falls_back_when_translation_is_incomplete(
+    monkeypatch,
+):
+    monkeypatch.setitem(
+        TRANSLATABLE_KEYS_BY_ENGINE,
+        "runes",
+        frozenset({"missing.name"}),
+    )
+    assert interpretation_langs("runes") == ("ja",)
+    assert interpretation_langs("unknown") == ("ja",)

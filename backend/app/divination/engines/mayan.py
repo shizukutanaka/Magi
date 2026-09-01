@@ -43,10 +43,11 @@ class MayanEngine:
         tone = GALACTIC_TONES[tone_index]
         localized_seal = dt(lang, self.id, f"solar_seal.{seal_index}", seal)
         localized_tone = dt(lang, self.id, f"galactic_tone.{tone_index}", tone)
-        symbol = (
-            f"{tone}{seal}"
-            if lang == "ja"
-            else f"{localized_tone} {localized_seal}"
+        symbol = t(
+            lang,
+            "format.mayan.kin",
+            tone=localized_tone,
+            seal=localized_seal,
         )
         drawn = [
             DrawnSymbol(

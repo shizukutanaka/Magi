@@ -11,11 +11,11 @@ from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
 
 
-def sun_sign(birth_date: date) -> tuple[str, str, str]:
-    for name, start, end, element, quality in ZODIAC:
+def sun_sign(birth_date: date) -> int:
+    for index, (_, start, end, _, _) in enumerate(ZODIAC):
         if (birth_date.month, birth_date.day) >= start and (birth_date.month, birth_date.day) <= end:
-            return name, element, quality
-    return "やぎ座", "土", "堅実さ"
+            return index
+    return 0
 
 
 class AstrologyEngine:
@@ -28,14 +28,8 @@ class AstrologyEngine:
     def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
-        sign, element, quality = sun_sign(inp.birth_date)
-        zodiac_index = next(
-            index
-            for index, (name, start, end, _, _) in enumerate(ZODIAC)
-            if name == sign
-            and (inp.birth_date.month, inp.birth_date.day) >= start
-            and (inp.birth_date.month, inp.birth_date.day) <= end
-        )
+        zodiac_index = sun_sign(inp.birth_date)
+        sign, _, _, element, quality = ZODIAC[zodiac_index]
         epoch = date(2000, 1, 6)
         days = (inp.target_date - epoch).days
         phase_index = int((days % 29.530588853) / (29.530588853 / 8))
