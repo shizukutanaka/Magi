@@ -64,7 +64,7 @@ class AstrologyEngine:
                 ReadingSection(title=t(lang, "section.astrology.weekday_ruler"), body=t(lang, "body.astrology.weekday_ruler", ruler=localized_ruler)),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.astrology.guidance")),
             ],
-            rng.randint(45, 93), rng, lang,
+            None, rng, lang,
         )
 
 

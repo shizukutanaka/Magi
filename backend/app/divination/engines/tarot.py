@@ -58,7 +58,7 @@ class TarotEngine:
                 ReadingSection(title=t(lang, "section.finance"), body=t(lang, "body.tarot.finance")),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.tarot.guidance")),
             ],
-            rng.randint(45, 95), rng, lang,
+            None, rng, lang,
         )
 
 

@@ -75,7 +75,7 @@ class BaziEngine:
                 ReadingSection(title=t(lang, "section.bazi.compatibility"), body=compatibility),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.bazi.guidance")),
             ],
-            rng.randint(38, 91), rng, lang,
+            None, rng, lang,
         )
 
 

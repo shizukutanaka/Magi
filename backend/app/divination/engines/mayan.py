@@ -71,7 +71,7 @@ class MayanEngine:
                 ReadingSection(title=t(lang, "section.mayan.flow"), body=t(lang, "body.mayan.flow")),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.mayan.guidance")),
             ],
-            rng.randint(44, 95), rng, lang,
+            None, rng, lang,
         )
 
 

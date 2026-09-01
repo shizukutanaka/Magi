@@ -9,6 +9,15 @@ GRADES = (
     ("curse", "凶", 7, "慎重に準備する時です。", "焦らず待ちましょう。", "再確認が必要です。", "延期も選択肢です。", "大きな決断は慎重に。", "言葉を選びましょう。", "早めの休養を。"),
     ("great-curse", "大凶", 2, "足元を整えれば道が開きます。", "今は動かず時を待ちます。", "思い込みを捨てて探します。", "急な旅は避けましょう。", "守りを固めましょう。", "自分と相手をいたわりましょう。", "専門家に相談しましょう。"),
 )
+GRADE_SCORES: dict[str, int] = {
+    "great-blessing": 92,
+    "middle-blessing": 78,
+    "small-blessing": 70,
+    "blessing": 66,
+    "future-blessing": 56,
+    "curse": 38,
+    "great-curse": 24,
+}
 CATEGORIES = ("願望", "待人", "失物", "旅行", "商売", "恋愛", "健康")
 TRANSLATABLE_KEYS: frozenset[str] = frozenset(
     f"{grade[0]}.{field}"

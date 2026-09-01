@@ -46,7 +46,7 @@ class RunesEngine:
                 ReadingSection(title=t(lang, "section.relationship"), body=t(lang, "body.runes.relationship")),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.runes.guidance")),
             ],
-            rng.randint(42, 94), rng, lang,
+            None, rng, lang,
         )
 
 

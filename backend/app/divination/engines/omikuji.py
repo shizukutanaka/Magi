@@ -2,7 +2,7 @@
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.localize import dt
-from app.divination.data.omikuji import GRADES
+from app.divination.data.omikuji import GRADE_SCORES, GRADES
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
@@ -46,7 +46,7 @@ class OmikujiEngine:
         )
         return finish(
             self.id, t(lang, "engine.omikuji.name"), t(lang, "engine.omikuji.tradition"), rng.seed, drawn,
-            t(lang, "summary.omikuji", grade=grade_name, wish=localized_advice[0]), sections, rng.randint(35, 98), rng, lang,
+            t(lang, "summary.omikuji", grade=grade_name, wish=localized_advice[0]), sections, GRADE_SCORES[grade_key], rng, lang,
         )
 
 

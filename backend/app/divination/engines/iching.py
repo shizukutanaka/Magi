@@ -74,7 +74,7 @@ class IChingEngine:
                 ReadingSection(title=t(lang, "section.iching.change"), body=changed_interpretation if changed_number != number else t(lang, "body.iching.no_change")),
                 ReadingSection(title=t(lang, "section.practice"), body=t(lang, "body.iching.practice")),
             ],
-            rng.randint(40, 92), rng, lang,
+            None, rng, lang,
         )
 
 

@@ -83,7 +83,7 @@ class NumerologyEngine:
                     ),
                 ),
             ],
-            rng.randint(40, 96), rng, lang,
+            None, rng, lang,
         )
 
 
