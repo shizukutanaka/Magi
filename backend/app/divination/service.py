@@ -6,6 +6,7 @@ from app.divination.base import DivinationEngine, DivinationInput, Reading
 from app.divination.engines.tarot import ALLOWED_SPREADS
 from app.divination.registry import all_engines, get_engine
 from app.divination.seed import SeededRandom, build_seed
+from app.i18n import DEFAULT_LANG, Lang, t
 
 
 class ReadingError(Exception):
@@ -29,7 +30,12 @@ def _validate_spread(inp: DivinationInput) -> None:
         raise UnknownSpreadError
 
 
-def cast_reading(engine_id: str, inp: DivinationInput, subject_key: str) -> Reading:
+def cast_reading(
+    engine_id: str,
+    inp: DivinationInput,
+    subject_key: str,
+    lang: Lang = DEFAULT_LANG,
+) -> Reading:
     """Cast one reading using the same path as the HTTP API."""
     engine = get_engine(engine_id)
     missing = [field for field in engine.required_fields if getattr(inp, field, None) is None]
@@ -39,10 +45,14 @@ def cast_reading(engine_id: str, inp: DivinationInput, subject_key: str) -> Read
     if engine.id == "tarot":
         _validate_spread(inp)
     seed = build_seed(subject_key, engine.id, inp)
-    return engine.cast(inp, SeededRandom(seed))
+    return engine.cast(inp, SeededRandom(seed), lang)
 
 
-def select_daily_engines(inp: DivinationInput, subject_key: str) -> list[DivinationEngine]:
+def select_daily_engines(
+    inp: DivinationInput,
+    subject_key: str,
+    lang: Lang = DEFAULT_LANG,
+) -> list[DivinationEngine]:
     """Select up to three eligible engines from distinct traditions."""
     available = [
         engine
@@ -59,14 +69,18 @@ def select_daily_engines(inp: DivinationInput, subject_key: str) -> list[Divinat
     return selection[:3]
 
 
-def daily_reading(inp: DivinationInput, subject_key: str) -> dict:
+def daily_reading(
+    inp: DivinationInput,
+    subject_key: str,
+    lang: Lang = DEFAULT_LANG,
+) -> dict:
     """Return the deterministic three-tradition daily reading."""
     _validate_spread(inp)
-    selection = select_daily_engines(inp, subject_key)
-    readings = [cast_reading(engine.id, inp, subject_key) for engine in selection]
+    selection = select_daily_engines(inp, subject_key, lang)
+    readings = [cast_reading(engine.id, inp, subject_key, lang) for engine in selection]
     scores = [reading.score for reading in readings if reading.score is not None]
     names = [symbol.name for reading in readings for symbol in reading.drawn]
-    overview = f"{len(readings)}つの流派が、{ '・'.join(names[:3]) }を共通の手がかりとして示しています。"
+    overview = t(lang, "daily.overview", count=len(readings), names="・".join(names[:3]))
     return {
         "readings": readings,
         "overview": overview,

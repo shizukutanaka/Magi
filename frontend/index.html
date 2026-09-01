@@ -10,68 +10,74 @@
   <body>
     <header class="site-header">
       <a class="brand" href="/">Magi</a>
-      <nav aria-label="メインナビゲーション">
-        <button type="button" data-view="landing">今日の三賢者</button>
-        <button type="button" data-view="reading-form">鑑定</button>
-        <button type="button" data-view="history">履歴</button>
+      <nav aria-label="メインナビゲーション" data-i18n-aria-label="nav.aria">
+        <button type="button" data-view="landing" data-i18n="nav.daily">今日の三賢者</button>
+        <button type="button" data-view="reading-form" data-i18n="nav.reading">鑑定</button>
+        <button type="button" data-view="history" data-i18n="nav.history">履歴</button>
+        <label class="language-switch"><span data-i18n="language.label">言語</span>
+          <select id="language-select" aria-label="言語" data-i18n-aria-label="language.label">
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
       </nav>
     </header>
     <main class="container">
       <p id="status" class="status" role="status" aria-live="polite"></p>
 
       <section id="view-landing" data-view-panel>
-        <p class="eyebrow">Magi / Daily Magi</p>
-        <h1>今日の三賢者</h1>
-        <p class="lead">異なる伝統の象徴を並べ、今日の問いを静かに見つめます。</p>
-        <button id="daily-button" class="primary-button" type="button">今日の鑑定をはじめる</button>
-        <p class="privacy-note">ログイン不要。入力は鑑定計算にのみ使われ、サーバには保存されません。</p>
+        <p class="eyebrow" data-i18n="landing.eyebrow">Magi / Daily Magi</p>
+        <h1 data-i18n="landing.title">今日の三賢者</h1>
+        <p class="lead" data-i18n="landing.lead">異なる伝統の象徴を並べ、今日の問いを静かに見つめます。</p>
+        <button id="daily-button" class="primary-button" type="button" data-i18n="landing.start">今日の鑑定をはじめる</button>
+        <p class="privacy-note" data-i18n="privacy.note">ログイン不要。入力は鑑定計算にのみ使われ、サーバには保存されません。</p>
       </section>
 
       <section id="view-reading-form" data-view-panel hidden>
-        <p class="eyebrow">Magi / Reading</p>
-        <h1>鑑定</h1>
+        <p class="eyebrow" data-i18n="reading.eyebrow">Magi / Reading</p>
+        <h1 data-i18n="reading.title">鑑定</h1>
         <form id="reading-form">
           <label>
-            占術
+            <span data-i18n="form.engine">占術</span>
             <select id="engine-id" name="engine_id" required></select>
           </label>
           <label>
-            対象日
+            <span data-i18n="form.date">対象日</span>
             <input id="target-date" name="target_date" type="date" required>
           </label>
           <label id="question-field">
-            問い（任意）
-            <textarea id="question" name="question" rows="3" placeholder="いま心にある問い"></textarea>
+            <span id="question-label">問い（任意）</span>
+            <textarea id="question" name="question" rows="3" placeholder="いま心にある問い" data-i18n-placeholder="form.question_placeholder"></textarea>
           </label>
           <label id="birth-date-field" hidden>
-            生年月日
+            <span data-i18n="form.birth_date">生年月日</span>
             <input id="birth-date" name="birth_date" type="date">
           </label>
           <label id="birth-time-field" hidden>
-            出生時刻
+            <span data-i18n="form.birth_time">出生時刻</span>
             <input id="birth-time" name="birth_time" type="time">
           </label>
           <label id="full-name-field">
-            氏名（任意）
+            <span id="full-name-label">氏名（任意）</span>
             <input id="full-name" name="full_name" type="text" autocomplete="name">
           </label>
           <label id="spread-field" hidden>
-            スプレッド
+            <span data-i18n="form.spread">スプレッド</span>
             <select id="spread" name="spread">
-              <option value="three-card">スリーカード</option>
-              <option value="celtic-cross">ケルト十字</option>
+              <option value="three-card" data-i18n="form.spread_three">スリーカード</option>
+              <option value="celtic-cross" data-i18n="form.spread_celtic">ケルト十字</option>
             </select>
           </label>
-          <button class="primary-button" type="submit">鑑定する</button>
+          <button class="primary-button" type="submit" data-i18n="form.submit">鑑定する</button>
         </form>
       </section>
 
       <section id="view-history" data-view-panel hidden>
-        <p class="eyebrow">Magi / Local History</p>
-        <h1>履歴</h1>
+        <p class="eyebrow" data-i18n="history.eyebrow">Magi / Local History</p>
+        <h1 data-i18n="history.title">履歴</h1>
         <div class="button-row">
-          <button id="export-history" type="button">エクスポート</button>
-          <button id="clear-history" class="quiet-button" type="button">全削除</button>
+          <button id="export-history" type="button" data-i18n="history.export">エクスポート</button>
+          <button id="clear-history" class="quiet-button" type="button" data-i18n="history.clear">全削除</button>
         </div>
         <div id="history-list"></div>
       </section>

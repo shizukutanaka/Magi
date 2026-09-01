@@ -5,6 +5,7 @@ from app.divination.data.tarot import CARDS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 ALLOWED_SPREADS = ("three-card", "celtic-cross")
 
@@ -16,16 +17,16 @@ class TarotEngine:
     required_fields = frozenset()
     default_options = {"spread": "three-card"}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         spread = inp.options.get("spread", "three-card")
         if spread not in ALLOWED_SPREADS:
             raise ValueError(f"unknown tarot spread: {spread}")
         positions = (
-            ("過去", "present"), ("現在", "present"), ("未来", "present")
+            (t(lang, "position.tarot.past"), "present"), (t(lang, "position.tarot.present"), "present"), (t(lang, "position.tarot.future"), "present")
         ) if spread == "three-card" else (
-            ("現状", "present"), ("課題", "present"), ("過去", "present"), ("近い未来", "present"),
-            ("意識", "present"), ("無意識", "present"), ("自分", "present"), ("環境", "present"),
-            ("願望", "present"), ("結論", "present"),
+            (t(lang, "position.tarot.current"), "present"), (t(lang, "position.tarot.challenge"), "present"), (t(lang, "position.tarot.past"), "present"), (t(lang, "position.tarot.near_future"), "present"),
+            (t(lang, "position.tarot.conscious"), "present"), (t(lang, "position.tarot.unconscious"), "present"), (t(lang, "position.tarot.self"), "present"), (t(lang, "position.tarot.environment"), "present"),
+            (t(lang, "position.tarot.hope"), "present"), (t(lang, "position.tarot.conclusion"), "present"),
         )
         cards = rng.sample(CARDS, len(positions))
         drawn = []
@@ -43,16 +44,16 @@ class TarotEngine:
         lead = cards[0]
         meaning = lead.reversed_meaning if drawn[0].reversed else lead.upright_meaning
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"{lead.name_ja}が示す「{meaning.split('。')[0]}」を今日の手がかりにしましょう。",
+            self.id, t(lang, "engine.tarot.name"), t(lang, "engine.tarot.tradition"), rng.seed, drawn,
+            t(lang, "summary.tarot", name=lead.name_ja, meaning=meaning.split("。")[0]),
             [
-                ReadingSection(title="総合", body=meaning),
-                ReadingSection(title="恋愛", body="相手の言葉を決めつけず、感じたことを丁寧に伝えると関係が整います。"),
-                ReadingSection(title="仕事", body="優先順位を一つに絞り、目の前の役割を着実に進めましょう。"),
-                ReadingSection(title="金運", body="必要なものと勢いで欲しいものを分けて考えると安心です。"),
-                ReadingSection(title="助言", body="カードの象徴を自分の問いに重ね、今日できる小さな一歩を選びましょう。"),
+                ReadingSection(title=t(lang, "section.overall"), body=meaning),
+                ReadingSection(title=t(lang, "section.love"), body=t(lang, "body.tarot.love")),
+                ReadingSection(title=t(lang, "section.work"), body=t(lang, "body.tarot.work")),
+                ReadingSection(title=t(lang, "section.finance"), body=t(lang, "body.tarot.finance")),
+                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.tarot.guidance")),
             ],
-            rng.randint(45, 95), rng,
+            rng.randint(45, 95), rng, lang,
         )
 
 

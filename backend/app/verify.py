@@ -16,6 +16,7 @@ from app.divination.service import (
     cast_reading,
     daily_reading,
 )
+from app.i18n import resolve_lang
 
 
 def _query_values(share_url: str) -> dict[str, str]:
@@ -90,6 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Magiの共有URLをオフラインで検証します。")
     parser.add_argument("share_url", help="Magiの共有URLまたはクエリ文字列")
     parser.add_argument("--expect-seed", dest="expected_seed")
+    parser.add_argument("--lang", choices=("ja", "en"))
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)
 
@@ -97,13 +99,14 @@ def main(argv: list[str] | None = None) -> int:
         params = _query_values(args.share_url)
         inp = _input_from_query(params)
         subject_key = params.get("s") or "anonymous"
+        lang = resolve_lang(args.lang, params.get("lang"))
         if params.get("daily") == "1":
-            result = daily_reading(inp, subject_key)
+            result = daily_reading(inp, subject_key, lang)
         else:
             engine_id = params.get("engine")
             if not engine_id:
                 raise ValueError("共有URLにengineが指定されていません。")
-            result = cast_reading(engine_id, inp, subject_key)
+            result = cast_reading(engine_id, inp, subject_key, lang)
     except UnknownEngineError:
         print(f"未知の流派です: {params.get('engine', '')}", file=sys.stderr)
         return 2
