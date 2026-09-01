@@ -1,6 +1,7 @@
 """Japanese presentation catalog."""
 
 MESSAGES = {
+    "list.separator": "・",
     "engine.tarot.name": "タロット",
     "engine.tarot.tradition": "西洋",
     "engine.iching.name": "易経（周易）",
@@ -92,6 +93,14 @@ MESSAGES = {
     "body.iching.practice": "一度に全てを動かさず、時機と周囲の調和を確認して進みましょう。",
     "body.iching.change": "変化の先には{changed_name}が現れます。",
     "body.omikuji.overall": "運勢は{grade}。{wish}",
+    "section.omikuji.1": "待人",
+    "section.omikuji.2": "失物",
+    "section.omikuji.3": "旅行",
+    "section.omikuji.4": "商売",
+    "section.omikuji.5": "恋愛",
+    "section.omikuji.6": "健康",
+    "format.bazi.pillar": "{stem}{branch}",
+    "format.mayan.kin": "{tone}{seal}",
     "body.astrology.sun_sign": "{sign}（{element}）の持ち味である{quality}を、無理なく表現しましょう。",
     "body.astrology.moon_phase": "{phase}は心のリズムを見つめる節目です。気持ちを言葉にすると整理が進みます。",
     "body.astrology.weekday_ruler": "{ruler}の象徴が示す力を借り、今日の最優先事項を一つ実行しましょう。",
@@ -100,6 +109,8 @@ MESSAGES = {
     "body.numerology.destiny": "氏名から導く{destiny}は、周囲に届ける才能と役割を表します。",
     "body.numerology.practice": "数字の意味を決めつけず、得意な行動として日常に小さく取り入れましょう。",
     "body.numerology.guidance": "マスターナンバーを持つ場合も、理想と現実の両方に足場を置くことが大切です。",
+    "symbol.numerology.life_path": "ライフパス {number}",
+    "symbol.numerology.destiny": "運命数 {number}",
     "body.bazi.year_pillar": "{pillar}は{animal}（{element}）の気を帯びます。",
     "body.bazi.day_pillar": "{pillar}は日々の自分らしさを表し、{element}の性質を示します。",
     "body.bazi.guidance": "本来の四柱推命を簡略化した読みです。季節や出生時刻も含めた判断は専門家に委ねましょう。",

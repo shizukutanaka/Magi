@@ -18,3 +18,14 @@ ZODIAC = (
 )
 WEEKDAY_RULERS = ("月", "火星", "水星", "木星", "金星", "土星", "太陽")
 MOON_PHASES = ("新月", "三日月", "上弦", "十三夜", "満月", "十八夜", "下弦", "有明月")
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    {
+        *(
+            f"zodiac.{index}.{field}"
+            for index in range(len(ZODIAC))
+            for field in ("name", "element", "quality")
+        ),
+        *(f"weekday.{index}" for index in range(len(WEEKDAY_RULERS))),
+        *(f"moon_phase.{index}" for index in range(len(MOON_PHASES))),
+    }
+)

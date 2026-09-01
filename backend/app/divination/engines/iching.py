@@ -2,7 +2,8 @@
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.iching import CARDS
-from app.divination.engines._common import finish
+from app.divination.data.localize import dt
+from app.divination.engines._common import finish, first_sentence
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
@@ -22,10 +23,26 @@ class IChingEngine:
         changed_lines = [8 if line == 9 else 7 if line == 6 else line for line in lines]
         changed_number = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(changed_lines)) + 1
         changed = CARDS[changed_number - 1]
+        primary_key = f"hex-{primary.number:02d}"
+        changed_key = f"hex-{changed.number:02d}"
+        primary_name = dt(lang, self.id, f"{primary_key}.name", primary.name_ja)
+        primary_judgment = dt(
+            lang, self.id, f"{primary_key}.judgment", primary.judgment
+        )
+        primary_interpretation = dt(
+            lang, self.id, f"{primary_key}.interpretation", primary.interpretation
+        )
+        changed_name = dt(lang, self.id, f"{changed_key}.name", changed.name_ja)
+        changed_interpretation = dt(
+            lang,
+            self.id,
+            f"{changed_key}.interpretation",
+            changed.interpretation,
+        )
         drawn = [
             DrawnSymbol(
                 key=f"hex-{primary.number:02d}",
-                name=primary.name_ja,
+                name=primary_name,
                 position=t(lang, "position.iching.primary"),
                 image_hint=f"iching/hex-{primary.number:02d}",
             )
@@ -34,7 +51,7 @@ class IChingEngine:
             drawn.append(
                 DrawnSymbol(
                     key=f"hex-{changed.number:02d}",
-                    name=changed.name_ja,
+                    name=changed_name,
                     position=t(lang, "position.iching.transformed"),
                     image_hint=f"iching/hex-{changed.number:02d}",
                 )
@@ -44,14 +61,14 @@ class IChingEngine:
             t(
                 lang,
                 "summary.iching.primary",
-                name=primary.name_ja,
-                meaning=primary.interpretation.split("。")[0],
-                change=t(lang, "body.iching.change", changed_name=changed.name_ja) if changed_number != number else "",
+                name=primary_name,
+                meaning=first_sentence(primary_interpretation),
+                change=t(lang, "body.iching.change", changed_name=changed_name) if changed_number != number else "",
             ),
             [
-                ReadingSection(title=t(lang, "section.overall"), body=primary.interpretation),
-                ReadingSection(title=t(lang, "section.iching.judgment"), body=primary.judgment),
-                ReadingSection(title=t(lang, "section.iching.change"), body=changed.interpretation if changed_number != number else t(lang, "body.iching.no_change")),
+                ReadingSection(title=t(lang, "section.overall"), body=primary_interpretation),
+                ReadingSection(title=t(lang, "section.iching.judgment"), body=primary_judgment),
+                ReadingSection(title=t(lang, "section.iching.change"), body=changed_interpretation if changed_number != number else t(lang, "body.iching.no_change")),
                 ReadingSection(title=t(lang, "section.practice"), body=t(lang, "body.iching.practice")),
             ],
             rng.randint(40, 92), rng, lang,

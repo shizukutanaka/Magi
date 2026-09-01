@@ -1,8 +1,9 @@
 """Rider-Waite-Smith tarot engine."""
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
+from app.divination.data.localize import dt
 from app.divination.data.tarot import CARDS
-from app.divination.engines._common import finish
+from app.divination.engines._common import finish, first_sentence
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
@@ -35,17 +36,22 @@ class TarotEngine:
             drawn.append(
                 DrawnSymbol(
                     key=card.key,
-                    name=card.name_ja,
+                    name=dt(lang, self.id, f"{card.key}.name", card.name_ja),
                     position=position,
                     reversed=reversed_card,
                     image_hint=f"tarot/{card.key}",
                 )
             )
         lead = cards[0]
-        meaning = lead.reversed_meaning if drawn[0].reversed else lead.upright_meaning
+        meaning_key = "reversed_meaning" if drawn[0].reversed else "upright_meaning"
+        meaning_source = (
+            lead.reversed_meaning if drawn[0].reversed else lead.upright_meaning
+        )
+        meaning = dt(lang, self.id, f"{lead.key}.{meaning_key}", meaning_source)
+        lead_name = dt(lang, self.id, f"{lead.key}.name", lead.name_ja)
         return finish(
             self.id, t(lang, "engine.tarot.name"), t(lang, "engine.tarot.tradition"), rng.seed, drawn,
-            t(lang, "summary.tarot", name=lead.name_ja, meaning=meaning.split("。")[0]),
+            t(lang, "summary.tarot", name=lead_name, meaning=first_sentence(meaning)),
             [
                 ReadingSection(title=t(lang, "section.overall"), body=meaning),
                 ReadingSection(title=t(lang, "section.love"), body=t(lang, "body.tarot.love")),

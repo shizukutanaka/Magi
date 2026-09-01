@@ -4,17 +4,18 @@ from datetime import date
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.astrology import MOON_PHASES, WEEKDAY_RULERS, ZODIAC
+from app.divination.data.localize import dt
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
 
 
-def sun_sign(birth_date: date) -> tuple[str, str, str]:
-    for name, start, end, element, quality in ZODIAC:
+def sun_sign(birth_date: date) -> int:
+    for index, (_, start, end, _, _) in enumerate(ZODIAC):
         if (birth_date.month, birth_date.day) >= start and (birth_date.month, birth_date.day) <= end:
-            return name, element, quality
-    return "やぎ座", "土", "堅実さ"
+            return index
+    return 0
 
 
 class AstrologyEngine:
@@ -27,23 +28,35 @@ class AstrologyEngine:
     def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
-        sign, element, quality = sun_sign(inp.birth_date)
+        zodiac_index = sun_sign(inp.birth_date)
+        sign, _, _, element, quality = ZODIAC[zodiac_index]
         epoch = date(2000, 1, 6)
         days = (inp.target_date - epoch).days
-        phase = MOON_PHASES[int((days % 29.530588853) / (29.530588853 / 8))]
-        ruler = WEEKDAY_RULERS[inp.target_date.weekday()]
+        phase_index = int((days % 29.530588853) / (29.530588853 / 8))
+        phase = MOON_PHASES[phase_index]
+        ruler_index = inp.target_date.weekday()
+        ruler = WEEKDAY_RULERS[ruler_index]
+        localized_sign = dt(lang, self.id, f"zodiac.{zodiac_index}.name", sign)
+        localized_element = dt(
+            lang, self.id, f"zodiac.{zodiac_index}.element", element
+        )
+        localized_quality = dt(
+            lang, self.id, f"zodiac.{zodiac_index}.quality", quality
+        )
+        localized_phase = dt(lang, self.id, f"moon_phase.{phase_index}", phase)
+        localized_ruler = dt(lang, self.id, f"weekday.{ruler_index}", ruler)
         drawn = [
-            DrawnSymbol(key=sign, name=sign, position=t(lang, "position.astrology.sun_sign"), image_hint=f"astrology/{sign}"),
-            DrawnSymbol(key=phase, name=phase, position=t(lang, "position.astrology.moon_phase"), image_hint=f"astrology/{phase}"),
-            DrawnSymbol(key=ruler, name=ruler, position=t(lang, "position.astrology.weekday_ruler"), image_hint=f"astrology/{ruler}"),
+            DrawnSymbol(key=sign, name=localized_sign, position=t(lang, "position.astrology.sun_sign"), image_hint=f"astrology/{sign}"),
+            DrawnSymbol(key=phase, name=localized_phase, position=t(lang, "position.astrology.moon_phase"), image_hint=f"astrology/{phase}"),
+            DrawnSymbol(key=ruler, name=localized_ruler, position=t(lang, "position.astrology.weekday_ruler"), image_hint=f"astrology/{ruler}"),
         ]
         return finish(
             self.id, t(lang, "engine.astrology.name"), t(lang, "engine.astrology.tradition"), rng.seed, drawn,
-            t(lang, "summary.astrology", sign=sign, quality=quality, phase=phase, ruler=ruler),
+            t(lang, "summary.astrology", sign=localized_sign, quality=localized_quality, phase=localized_phase, ruler=localized_ruler),
             [
-                ReadingSection(title=t(lang, "section.astrology.sun_sign"), body=t(lang, "body.astrology.sun_sign", sign=sign, element=element, quality=quality)),
-                ReadingSection(title=t(lang, "section.astrology.moon_phase"), body=t(lang, "body.astrology.moon_phase", phase=phase)),
-                ReadingSection(title=t(lang, "section.astrology.weekday_ruler"), body=t(lang, "body.astrology.weekday_ruler", ruler=ruler)),
+                ReadingSection(title=t(lang, "section.astrology.sun_sign"), body=t(lang, "body.astrology.sun_sign", sign=localized_sign, element=localized_element, quality=localized_quality)),
+                ReadingSection(title=t(lang, "section.astrology.moon_phase"), body=t(lang, "body.astrology.moon_phase", phase=localized_phase)),
+                ReadingSection(title=t(lang, "section.astrology.weekday_ruler"), body=t(lang, "body.astrology.weekday_ruler", ruler=localized_ruler)),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.astrology.guidance")),
             ],
             rng.randint(45, 93), rng, lang,

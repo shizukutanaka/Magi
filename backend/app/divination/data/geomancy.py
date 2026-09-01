@@ -163,3 +163,8 @@ _ROWS = (
 
 FIGURES: tuple[GeomancyFigure, ...] = tuple(GeomancyFigure(*row) for row in _ROWS)
 FIGURES_BY_LINES = {figure.lines: figure for figure in FIGURES}
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    f"{figure.key}.{field}"
+    for figure in FIGURES
+    for field in ("name", "judgment", "witness", "practice")
+)

@@ -79,7 +79,12 @@ def daily_reading(
     readings = [cast_reading(engine.id, inp, subject_key, lang) for engine in selection]
     scores = [reading.score for reading in readings if reading.score is not None]
     names = [symbol.name for reading in readings for symbol in reading.drawn]
-    overview = t(lang, "daily.overview", count=len(readings), names="・".join(names[:3]))
+    overview = t(
+        lang,
+        "daily.overview",
+        count=len(readings),
+        names=t(lang, "list.separator").join(names[:3]),
+    )
     return {
         "readings": readings,
         "overview": overview,

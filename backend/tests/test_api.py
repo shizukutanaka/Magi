@@ -42,7 +42,7 @@ def test_systems_can_be_localized():
         assert response.status_code == 200
         tarot = next(system for system in response.json() if system["id"] == "tarot")
         assert tarot["name"] == "Tarot"
-        assert tarot["interpretation_langs"] == ["ja"]
+        assert tarot["interpretation_langs"] == ["ja", "en"]
 
 
 def test_reading_can_be_localized_without_changing_seed():

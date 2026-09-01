@@ -50,13 +50,13 @@ class NumerologyEngine:
         drawn = [
             DrawnSymbol(
                 key=str(life_path),
-                name=f"ライフパス {life_path}",
+                name=t(lang, "symbol.numerology.life_path", number=life_path),
                 position=t(lang, "position.numerology.birth_date"),
                 image_hint=f"numerology/{life_path}",
             ),
             DrawnSymbol(
                 key=str(destiny),
-                name=f"運命数 {destiny}",
+                name=t(lang, "symbol.numerology.destiny", number=destiny),
                 position=t(lang, "position.numerology.name"),
                 image_hint=f"numerology/{destiny}",
             ),
