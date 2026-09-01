@@ -26,13 +26,38 @@ def test_systems_are_all_unconditionally_available():
         "mayan",
         "geomancy",
     }
-    assert all(set(item) == {"id", "name", "tradition", "required_fields"} for item in systems)
+    assert all(set(item) == {"id", "name", "tradition", "required_fields", "interpretation_langs"} for item in systems)
 
 
 def test_reading_success():
     response = client.post("/api/v1/readings", json={"engine_id": "tarot", "input": {"target_date": "2026-01-01"}})
     assert response.status_code == 200
     assert response.json()["engine_id"] == "tarot"
+
+
+def test_systems_can_be_localized():
+    query_response = client.get("/api/v1/systems?lang=en")
+    header_response = client.get("/api/v1/systems", headers={"Accept-Language": "en"})
+    for response in (query_response, header_response):
+        assert response.status_code == 200
+        tarot = next(system for system in response.json() if system["id"] == "tarot")
+        assert tarot["name"] == "Tarot"
+        assert tarot["interpretation_langs"] == ["ja"]
+
+
+def test_reading_can_be_localized_without_changing_seed():
+    payload = {"engine_id": "tarot", "input": {"target_date": "2026-01-01"}, "subject_key": "lang"}
+    japanese = client.post("/api/v1/readings", json={**payload, "lang": "ja"})
+    english = client.post("/api/v1/readings", json={**payload, "lang": "en"})
+    assert japanese.status_code == english.status_code == 200
+    assert japanese.json()["seed"] == english.json()["seed"]
+    assert [
+        (symbol["key"], symbol["reversed"]) for symbol in japanese.json()["drawn"]
+    ] == [
+        (symbol["key"], symbol["reversed"]) for symbol in english.json()["drawn"]
+    ]
+    assert english.json()["engine_name"] == "Tarot"
+    assert english.json()["lang"] == "en"
 
 
 def test_implicit_and_explicit_default_tarot_spread_match():

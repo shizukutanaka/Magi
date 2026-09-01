@@ -7,6 +7,7 @@ from app.divination.data.astrology import MOON_PHASES, WEEKDAY_RULERS, ZODIAC
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 
 def sun_sign(birth_date: date) -> tuple[str, str, str]:
@@ -23,7 +24,7 @@ class AstrologyEngine:
     required_fields = frozenset({"birth_date"})
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
         sign, element, quality = sun_sign(inp.birth_date)
@@ -32,20 +33,20 @@ class AstrologyEngine:
         phase = MOON_PHASES[int((days % 29.530588853) / (29.530588853 / 8))]
         ruler = WEEKDAY_RULERS[inp.target_date.weekday()]
         drawn = [
-            DrawnSymbol(key=sign, name=sign, position="太陽星座", image_hint=f"astrology/{sign}"),
-            DrawnSymbol(key=phase, name=phase, position="月相", image_hint=f"astrology/{phase}"),
-            DrawnSymbol(key=ruler, name=ruler, position="曜日の支配星", image_hint=f"astrology/{ruler}"),
+            DrawnSymbol(key=sign, name=sign, position=t(lang, "position.astrology.sun_sign"), image_hint=f"astrology/{sign}"),
+            DrawnSymbol(key=phase, name=phase, position=t(lang, "position.astrology.moon_phase"), image_hint=f"astrology/{phase}"),
+            DrawnSymbol(key=ruler, name=ruler, position=t(lang, "position.astrology.weekday_ruler"), image_hint=f"astrology/{ruler}"),
         ]
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"{sign}の{quality}を、{phase}の内省と{ruler}の行動力で活かす日です。",
+            self.id, t(lang, "engine.astrology.name"), t(lang, "engine.astrology.tradition"), rng.seed, drawn,
+            t(lang, "summary.astrology", sign=sign, quality=quality, phase=phase, ruler=ruler),
             [
-                ReadingSection(title="太陽星座", body=f"{sign}（{element}）の持ち味である{quality}を、無理なく表現しましょう。"),
-                ReadingSection(title="月相", body=f"{phase}は心のリズムを見つめる節目です。気持ちを言葉にすると整理が進みます。"),
-                ReadingSection(title="曜日の支配星", body=f"{ruler}の象徴が示す力を借り、今日の最優先事項を一つ実行しましょう。"),
-                ReadingSection(title="助言", body="星の配置を決定としてではなく、自分を振り返る視点として受け取りましょう。"),
+                ReadingSection(title=t(lang, "section.astrology.sun_sign"), body=t(lang, "body.astrology.sun_sign", sign=sign, element=element, quality=quality)),
+                ReadingSection(title=t(lang, "section.astrology.moon_phase"), body=t(lang, "body.astrology.moon_phase", phase=phase)),
+                ReadingSection(title=t(lang, "section.astrology.weekday_ruler"), body=t(lang, "body.astrology.weekday_ruler", ruler=ruler)),
+                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.astrology.guidance")),
             ],
-            rng.randint(45, 93), rng,
+            rng.randint(45, 93), rng, lang,
         )
 
 

@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Protocol
 
 from pydantic import BaseModel, Field
 
+from app.i18n import Lang
+
 if TYPE_CHECKING:
     from app.divination.seed import SeededRandom
 
@@ -52,6 +54,8 @@ class Reading(BaseModel):
     lucky: LuckyItems | None
     generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     disclaimer: str = DISCLAIMER
+    lang: str = "ja"
+    interpretation_lang: str = "ja"
 
 
 class DivinationEngine(Protocol):
@@ -61,5 +65,5 @@ class DivinationEngine(Protocol):
     required_fields: frozenset[str]
     default_options: dict[str, str]
 
-    def cast(self, inp: DivinationInput, rng: "SeededRandom") -> Reading:
+    def cast(self, inp: DivinationInput, rng: "SeededRandom", lang: Lang = "ja") -> Reading:
         """Return a deterministic reading for the supplied seeded random source."""

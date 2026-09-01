@@ -78,6 +78,31 @@ def test_cli_default_and_explicit_tarot_spread_match(capsys):
     assert implicit["seed"] == explicit["seed"]
 
 
+def test_cli_language_does_not_change_seed(capsys):
+    url = share_url(engine="tarot", date="2026-01-01", s="verify-language")
+    assert main([url, "--json"]) == 0
+    japanese = json.loads(capsys.readouterr().out)
+    assert main([url, "--lang", "en", "--json"]) == 0
+    english = json.loads(capsys.readouterr().out)
+    assert japanese["seed"] == english["seed"]
+    assert english["engine_name"] == "Tarot"
+
+
+def test_cli_language_flag_overrides_share_url(capsys):
+    url = share_url(engine="tarot", date="2026-01-01", lang="ja", s="verify-language-order")
+    assert main([url, "--lang", "en", "--json"]) == 0
+    english = json.loads(capsys.readouterr().out)
+    assert english["lang"] == "en"
+    assert english["engine_name"] == "Tarot"
+
+
+def test_cli_language_query_parameter(capsys):
+    url = share_url(engine="tarot", date="2026-01-01", lang="en", s="verify-language-query")
+    assert main([url, "--json"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["lang"] == "en"
+
+
 def test_cli_expect_seed_exit_codes(capsys):
     url = share_url(engine="tarot", date="2026-01-01", s="verify-expect")
     assert main([url, "--json"]) == 0

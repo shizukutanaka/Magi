@@ -13,6 +13,7 @@ from app.divination.data.mayan import GALACTIC_TONES, SOLAR_SEALS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 GMT_CORRELATION = 584283
 
@@ -31,7 +32,7 @@ class MayanEngine:
     required_fields = frozenset({"birth_date"})
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
         kin = ((_julian_day(inp.birth_date) - GMT_CORRELATION) % 260) + 1
@@ -41,20 +42,20 @@ class MayanEngine:
             DrawnSymbol(
                 key=f"kin-{kin}",
                 name=f"{tone}{seal}",
-                position="誕生キン",
+                position=t(lang, "position.mayan.birth_kin"),
                 image_hint=f"mayan/kin-{kin}",
             )
         ]
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"{tone}{seal}（KIN {kin}）の象徴は、自分のリズムで才能を育てることを促します。",
+            self.id, t(lang, "engine.mayan.name"), t(lang, "engine.mayan.tradition"), rng.seed, drawn,
+            t(lang, "summary.mayan", symbol=f"{tone}{seal}", kin=kin),
             [
-                ReadingSection(title="銀河の音", body=f"{tone}音は、意図を定めてエネルギーの流れを整える響きです。"),
-                ReadingSection(title="太陽の紋章", body=f"{seal}は、経験の中で磨かれる個性と行動の方向を示します。"),
-                ReadingSection(title="今日の流れ", body="生まれ持った象徴を固定的な運命ではなく、選択を見直す鏡として活用しましょう。"),
-                ReadingSection(title="助言", body="ツォルキンはGMT相関定数584283に基づく簡略計算です。"),
+                ReadingSection(title=t(lang, "section.mayan.galactic_tone"), body=t(lang, "body.mayan.galactic_tone", tone=tone)),
+                ReadingSection(title=t(lang, "section.mayan.solar_seal"), body=t(lang, "body.mayan.solar_seal", seal=seal)),
+                ReadingSection(title=t(lang, "section.mayan.flow"), body=t(lang, "body.mayan.flow")),
+                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.mayan.guidance")),
             ],
-            rng.randint(44, 95), rng,
+            rng.randint(44, 95), rng, lang,
         )
 
 

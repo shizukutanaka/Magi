@@ -5,6 +5,7 @@ from app.divination.data.iching import CARDS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 
 class IChingEngine:
@@ -14,7 +15,7 @@ class IChingEngine:
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         lines = [sum(rng.randint(2, 3) for _ in range(3)) for _ in range(6)]
         number = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(lines)) + 1
         primary = CARDS[number - 1]
@@ -25,7 +26,7 @@ class IChingEngine:
             DrawnSymbol(
                 key=f"hex-{primary.number:02d}",
                 name=primary.name_ja,
-                position="本卦",
+                position=t(lang, "position.iching.primary"),
                 image_hint=f"iching/hex-{primary.number:02d}",
             )
         ]
@@ -34,21 +35,26 @@ class IChingEngine:
                 DrawnSymbol(
                     key=f"hex-{changed.number:02d}",
                     name=changed.name_ja,
-                    position="之卦",
+                    position=t(lang, "position.iching.transformed"),
                     image_hint=f"iching/hex-{changed.number:02d}",
                 )
             )
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"本卦{primary.name_ja}は、{primary.interpretation.split('。')[0]}。"
-            + (f"変化の先には{changed.name_ja}が現れます。" if changed_number != number else ""),
+            self.id, t(lang, "engine.iching.name"), t(lang, "engine.iching.tradition"), rng.seed, drawn,
+            t(
+                lang,
+                "summary.iching.primary",
+                name=primary.name_ja,
+                meaning=primary.interpretation.split("。")[0],
+                change=t(lang, "body.iching.change", changed_name=changed.name_ja) if changed_number != number else "",
+            ),
             [
-                ReadingSection(title="総合", body=primary.interpretation),
-                ReadingSection(title="卦辞", body=primary.judgment),
-                ReadingSection(title="変化", body=changed.interpretation if changed_number != number else "変爻はなく、現在の流れを丁寧に保つ時です。"),
-                ReadingSection(title="実践", body="一度に全てを動かさず、時機と周囲の調和を確認して進みましょう。"),
+                ReadingSection(title=t(lang, "section.overall"), body=primary.interpretation),
+                ReadingSection(title=t(lang, "section.iching.judgment"), body=primary.judgment),
+                ReadingSection(title=t(lang, "section.iching.change"), body=changed.interpretation if changed_number != number else t(lang, "body.iching.no_change")),
+                ReadingSection(title=t(lang, "section.practice"), body=t(lang, "body.iching.practice")),
             ],
-            rng.randint(40, 92), rng,
+            rng.randint(40, 92), rng, lang,
         )
 
 

@@ -7,6 +7,7 @@ from app.divination.data.geomancy import FIGURES_BY_LINES, GeomancyFigure
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 
 @dataclass(frozen=True)
@@ -54,7 +55,7 @@ class GeomancyEngine:
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         shield = build_shield(rng)
         right = shield.right_witness
         left = shield.left_witness
@@ -63,38 +64,46 @@ class GeomancyEngine:
             DrawnSymbol(
                 key=figure.key,
                 name=figure.name,
-                position=position,
+                position=t(lang, f"position.geomancy.{position}"),
                 reversed=False,
                 image_hint=f"geomancy/{figure.key}",
             )
             for figure, position in (
-                (right, "右証人"),
-                (left, "左証人"),
-                (judge, "判事"),
+                (right, "right_witness"),
+                (left, "left_witness"),
+                (judge, "judge"),
             )
         ]
         score = round(judge.base_score * 0.6 + (right.base_score + left.base_score) / 2 * 0.4)
         return finish(
             self.id,
-            self.name,
-            self.tradition,
+            t(lang, "engine.geomancy.name"),
+            t(lang, "engine.geomancy.tradition"),
             rng.seed,
             drawn,
-            f"{judge.name}が示す「{judge.judgment}」を、今回の中心的な手がかりとします。",
+            t(lang, "summary.geomancy", name=judge.name, judgment=judge.judgment),
             [
-                ReadingSection(title="総合", body=judge.judgment),
+                ReadingSection(title=t(lang, "section.overall"), body=judge.judgment),
                 ReadingSection(
-                    title="経緯",
-                    body=f"はじめに{right.name}。{right.witness}続いて{left.name}。{left.witness}",
+                    title=t(lang, "section.geomancy.story"),
+                    body=t(
+                        lang,
+                        "body.geomancy.story",
+                        name_right=right.name,
+                        witness_right=right.witness,
+                        name_left=left.name,
+                        witness_left=left.witness,
+                    ),
                 ),
-                ReadingSection(title="実践", body=judge.practice),
+                ReadingSection(title=t(lang, "section.practice"), body=judge.practice),
                 ReadingSection(
-                    title="助言",
-                    body="盾形図の母体から判事までの流れをたどり、単独の象徴ではなく各段階のつながりとして読み解いてください。",
+                    title=t(lang, "section.guidance"),
+                    body=t(lang, "body.geomancy.guidance"),
                 ),
             ],
             score,
             rng,
+            lang,
         )
 
 
