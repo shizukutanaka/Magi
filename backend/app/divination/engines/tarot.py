@@ -14,6 +14,7 @@ class TarotEngine:
     name = "タロット"
     tradition = "西洋"
     required_fields = frozenset()
+    default_options = {"spread": "three-card"}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         spread = inp.options.get("spread", "three-card")

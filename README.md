@@ -50,6 +50,16 @@ uvicorn app.main:app --reload
 `POST /api/v1/readings/daily` を利用できます。鑑定APIにはIPレートリミットが適用されますが、
 `/health` には適用されません。
 
+## Web UI
+
+`uvicorn app.main:app` を起動した後、ブラウザで
+`http://localhost:8000/` を開くと、今日の三賢者・鑑定・履歴を利用できます。
+UIはHTML・CSS・ES Modulesだけで構成されており、ビルド工程、npm、`node_modules` は必要ありません。
+フロントエンドも同じFastAPIプロセスから配信されるため、self-hostの起動方法は変わりません。
+
+履歴はブラウザのlocalStorageにのみ保存され、画面からJSONとしてエクスポートまたは全削除できます。
+サーバは履歴を含むリクエストデータを保存しません。
+
 ### 自分で結果を再現する
 
 APIレスポンスの `seed` は、subject key・占術ID・対象日・問い・入力から決まります。

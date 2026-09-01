@@ -34,6 +34,21 @@ def test_reading_success():
     assert response.json()["engine_id"] == "tarot"
 
 
+def test_implicit_and_explicit_default_tarot_spread_match():
+    base = {"engine_id": "tarot", "input": {"target_date": "2026-01-01"}, "subject_key": "same"}
+    implicit = client.post("/api/v1/readings", json=base)
+    explicit = client.post(
+        "/api/v1/readings",
+        json={
+            **base,
+            "input": {"target_date": "2026-01-01", "options": {"spread": "three-card"}},
+        },
+    )
+    assert implicit.status_code == explicit.status_code == 200
+    assert implicit.json()["seed"] == explicit.json()["seed"]
+    assert implicit.json()["drawn"] == explicit.json()["drawn"]
+
+
 def test_celtic_cross_is_available():
     response = client.post(
         "/api/v1/readings",
@@ -77,6 +92,36 @@ def test_daily_returns_three_distinct_traditions():
     assert len(readings) == 3
     assert len({reading["tradition"] for reading in readings}) == 3
     assert "upgrade_required" not in response.json()
+
+
+def test_daily_readings_match_single_readings():
+    payload = {
+        "target_date": "2026-01-01",
+        "question": "今日の問い",
+        "birth_date": "1990-01-02",
+        "full_name": "山田太郎",
+        "subject_key": "repro",
+    }
+    daily = client.post("/api/v1/readings/daily", json=payload)
+    assert daily.status_code == 200
+    input_data = {
+        "target_date": payload["target_date"],
+        "question": payload["question"],
+        "birth_date": payload["birth_date"],
+        "full_name": payload["full_name"],
+        "options": {},
+    }
+    for reading in daily.json()["readings"]:
+        single_input = {**input_data}
+        if reading["engine_id"] == "tarot":
+            single_input["options"] = {"spread": "three-card"}
+        single = client.post(
+            "/api/v1/readings",
+            json={"engine_id": reading["engine_id"], "input": single_input, "subject_key": payload["subject_key"]},
+        )
+        assert single.status_code == 200
+        assert single.json()["seed"] == reading["seed"]
+        assert single.json()["drawn"] == reading["drawn"]
 
 
 def test_rate_limit_returns_429_and_retry_after(monkeypatch):

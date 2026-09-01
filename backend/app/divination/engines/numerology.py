@@ -39,6 +39,7 @@ class NumerologyEngine:
     name = "数秘術"
     tradition = "西洋（ピタゴラス）"
     required_fields = frozenset({"full_name", "birth_date"})
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.full_name is None or inp.birth_date is None:
@@ -46,8 +47,18 @@ class NumerologyEngine:
         life_path = _life_path(inp.birth_date)
         destiny = _name_number(inp.full_name)
         drawn = [
-            DrawnSymbol(key=str(life_path), name=f"ライフパス {life_path}", position="生年月日"),
-            DrawnSymbol(key=str(destiny), name=f"運命数 {destiny}", position="氏名"),
+            DrawnSymbol(
+                key=str(life_path),
+                name=f"ライフパス {life_path}",
+                position="生年月日",
+                image_hint=f"numerology/{life_path}",
+            ),
+            DrawnSymbol(
+                key=str(destiny),
+                name=f"運命数 {destiny}",
+                position="氏名",
+                image_hint=f"numerology/{destiny}",
+            ),
         ]
         return finish(
             self.id, self.name, self.tradition, rng.seed, drawn,

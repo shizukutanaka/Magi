@@ -17,9 +17,6 @@ def finish(
     score: int,
     rng: SeededRandom,
 ) -> Reading:
-    if drawn:
-        first = drawn[0]
-        drawn[0] = first.model_copy(update={"image_hint": f"{first.image_hint or engine_id}/{seed[:12]}"})
     return Reading(
         engine_id=engine_id,
         engine_name=engine_name,

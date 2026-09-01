@@ -59,6 +59,7 @@ class DivinationEngine(Protocol):
     name: str
     tradition: str
     required_fields: frozenset[str]
+    default_options: dict[str, str]
 
     def cast(self, inp: DivinationInput, rng: "SeededRandom") -> Reading:
         """Return a deterministic reading for the supplied seeded random source."""
