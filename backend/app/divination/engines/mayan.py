@@ -8,7 +8,6 @@ convention because this product does not use an ephemeris.
 
 from datetime import date
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.mayan import GALACTIC_TONES, SOLAR_SEALS
 from app.divination.engines._common import finish
@@ -30,7 +29,6 @@ class MayanEngine:
     name = "マヤ暦ツォルキン"
     tradition = "中米"
     required_fields = frozenset({"birth_date"})
-    min_tier = Tier.PLUS
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:

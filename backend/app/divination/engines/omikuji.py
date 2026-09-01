@@ -1,6 +1,5 @@
 """Weighted Japanese omikuji engine."""
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.omikuji import CATEGORIES, GRADES
 from app.divination.engines._common import finish
@@ -13,7 +12,6 @@ class OmikujiEngine:
     name = "おみくじ"
     tradition = "日本"
     required_fields = frozenset()
-    min_tier = Tier.FREE
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         grade = rng.pick([grade for grade, weight, *_ in GRADES for _ in range(weight)])

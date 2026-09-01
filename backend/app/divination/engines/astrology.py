@@ -2,7 +2,6 @@
 
 from datetime import date
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.astrology import MOON_PHASES, WEEKDAY_RULERS, ZODIAC
 from app.divination.engines._common import finish
@@ -22,7 +21,6 @@ class AstrologyEngine:
     name = "西洋占星術"
     tradition = "西洋"
     required_fields = frozenset({"birth_date"})
-    min_tier = Tier.PLUS
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:
