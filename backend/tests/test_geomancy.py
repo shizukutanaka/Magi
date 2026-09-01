@@ -86,6 +86,38 @@ def test_geomancy_text_integrity():
     assert all(0 <= figure.base_score <= 100 for figure in FIGURES)
 
 
+def _find_witness_seed(*, same: bool) -> str:
+    inp = DivinationInput(target_date=date(2026, 9, 1))
+    for index in range(10000):
+        seed = build_seed(f"witness-{index}", "geomancy", inp)
+        chart = build_shield(SeededRandom(seed))
+        if (chart.right_witness == chart.left_witness) is same:
+            return seed
+    raise AssertionError("could not find requested witness relationship")
+
+
+def test_same_geomancy_witnesses_use_nonduplicating_story():
+    inp = DivinationInput(target_date=date(2026, 9, 1))
+    seed = _find_witness_seed(same=True)
+    reading = GeomancyEngine().cast(inp, SeededRandom(seed), "ja")
+    chart = build_shield(SeededRandom(seed))
+    witness = chart.right_witness.witness
+    story = reading.sections[1].body
+
+    assert "両方の証人に" in story
+    assert "同じ図が二度現れた分" in story
+    assert story.count(witness) == 1
+
+
+def test_different_geomancy_witnesses_keep_the_original_story():
+    inp = DivinationInput(target_date=date(2026, 9, 1))
+    seed = _find_witness_seed(same=False)
+    reading = GeomancyEngine().cast(inp, SeededRandom(seed), "ja")
+
+    assert reading.sections[1].body.startswith("はじめに")
+    assert "両方の証人に" not in reading.sections[1].body
+
+
 def test_geomancy_is_registered_in_api():
     systems = client.get("/api/v1/systems")
     assert systems.status_code == 200
