@@ -134,6 +134,21 @@ python -m ruff check app tests
 python -m pytest -q
 ```
 
+開発への参加方法は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+## CI
+
+`ci/backend-ci.yml` に GitHub Actions のワークフローを置いています。有効にするには
+リポジトリの管理者が次のコマンドでコピーしてください（Devinのトークンには
+`workflow` scope が無いため、この配置のままにしています）。
+
+```bash
+mkdir -p .github/workflows
+cp ci/backend-ci.yml .github/workflows/backend-ci.yml
+```
+
+このワークフローは push / pull_request で Ruff・pytest と、共有URLのオフライン検証CLIを実行します。
+
 ## 免責
 
 本鑑定はエンターテインメントおよび内省の補助を目的とし、医療・法律・投資の助言ではありません。

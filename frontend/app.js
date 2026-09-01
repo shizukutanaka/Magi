@@ -26,10 +26,20 @@ function setStatus(message = "") {
   status.textContent = message;
 }
 
-function showView(view) {
+function showView(view, { focus = false } = {}) {
   panels.forEach((panel) => {
     panel.hidden = panel.id !== `view-${view}`;
   });
+  const currentView = view === "result" ? "reading-form" : view;
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    if (button.dataset.view === currentView) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  if (focus) {
+    const panel = document.querySelector(`#view-${view}`);
+    const target = view === "result" ? panel : panel?.querySelector("h1");
+    target?.focus();
+  }
 }
 
 function today() {
@@ -233,7 +243,7 @@ function renderResults(readings, input, subjectKey, { overview, score, daily = f
   state.activeReadings = readings;
   state.activeInput = input;
   state.activeDaily = daily;
-  showView("result");
+  showView("result", { focus: true });
 }
 
 async function runDaily(params = {}) {
@@ -300,7 +310,7 @@ function setupEvents() {
     button.addEventListener("click", () => {
       const view = button.dataset.view;
       if (view === "history") renderHistory();
-      showView(view);
+      showView(view, { focus: true });
     });
   });
   engineSelect.addEventListener("change", updateFields);
@@ -346,6 +356,7 @@ async function init() {
   state.activeSubjectKey = getSubjectKey();
   document.querySelector("#target-date").value = today();
   setupEvents();
+  showView("landing");
   try {
     state.systems = await fetchSystems(state.lang);
     populateSystems();
