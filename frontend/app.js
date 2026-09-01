@@ -154,7 +154,7 @@ async function copyValue(value, button) {
 
 function saveReading(reading, input, subjectKey) {
   const url = queryForReading(reading.engine_id, input, subjectKey);
-  addHistory({
+  const saved = addHistory({
     engine_id: reading.engine_id,
     engine_name: reading.engine_name,
     tradition: reading.tradition,
@@ -164,7 +164,7 @@ function saveReading(reading, input, subjectKey) {
     generated_at: reading.generated_at,
     url,
   });
-  return url;
+  return { url, saved };
 }
 
 function formatTimestamp(value) {
@@ -236,10 +236,12 @@ function renderResults(readings, input, subjectKey, { overview, score, daily = f
     dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectKey), dailyShare));
     result.append(dailyShare);
   }
+  let historyFailed = false;
   readings.forEach((reading) => {
-    saveReading(reading, input, subjectKey);
+    if (!saveReading(reading, input, subjectKey).saved) historyFailed = true;
     result.append(renderReading(reading, input, subjectKey));
   });
+  if (historyFailed) setStatus(translate("status.history_unavailable"));
   state.activeReadings = readings;
   state.activeInput = input;
   state.activeDaily = daily;
@@ -258,12 +260,12 @@ async function runDaily(params = {}) {
   try {
     const subjectKey = params.subjectKey || state.activeSubjectKey;
     const response = await dailyReading({ ...input, subject_key: subjectKey, lang: state.lang });
+    setStatus("");
     renderResults(response.readings, input, subjectKey, {
       overview: response.overview,
       score: response.score,
       daily: true,
     });
-    setStatus("");
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   }
@@ -273,8 +275,8 @@ async function runReading(input = inputFromForm(), engineId = engineSelect.value
   setStatus(translate("status.reading"));
   try {
     const reading = await createReading({ engine_id: engineId, input, subject_key: subjectKey, lang: state.lang });
-    renderResults([reading], input, subjectKey, {});
     setStatus("");
+    renderResults([reading], input, subjectKey, {});
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   }

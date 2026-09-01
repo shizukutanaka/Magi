@@ -51,6 +51,7 @@ const CATALOGS = {
     "status.reading": "鑑定しています…",
     "status.copy_failed": "コピーに失敗しました。",
     "status.network": "通信に失敗しました。",
+    "status.history_unavailable": "履歴はこのブラウザに保存できませんでした（鑑定結果には影響しません）。",
     "status.deleted": "履歴を削除しました。",
     "error.unknown_engine": "未知の流派です。",
     "error.check_input": "入力を確認してください。",
@@ -110,6 +111,7 @@ const CATALOGS = {
     "status.reading": "Casting a reading…",
     "status.copy_failed": "Copy failed.",
     "status.network": "Communication failed.",
+    "status.history_unavailable": "History could not be saved in this browser. The reading itself is unaffected.",
     "status.deleted": "History deleted.",
     "error.unknown_engine": "Unknown system.",
     "error.check_input": "Please check your input.",
@@ -133,7 +135,12 @@ export function currentLanguage() {
 
 export function resolveBrowserLanguage(params = new URLSearchParams(window.location.search)) {
   const explicit = params.get("lang")?.toLowerCase().split("-")[0];
-  const stored = localStorage.getItem("magi.lang")?.toLowerCase().split("-")[0];
+  let stored;
+  try {
+    stored = localStorage.getItem("magi.lang")?.toLowerCase().split("-")[0];
+  } catch {
+    stored = undefined;
+  }
   const browser = navigator.language?.toLowerCase().split("-")[0];
   return SUPPORTED_LANGS.includes(explicit) ? explicit
     : SUPPORTED_LANGS.includes(stored) ? stored
@@ -142,7 +149,13 @@ export function resolveBrowserLanguage(params = new URLSearchParams(window.locat
 
 export function setLanguage(lang, { persist = true } = {}) {
   activeLang = SUPPORTED_LANGS.includes(lang) ? lang : "ja";
-  if (persist) localStorage.setItem("magi.lang", activeLang);
+  if (persist) {
+    try {
+      localStorage.setItem("magi.lang", activeLang);
+    } catch {
+      // 言語設定を保存できない環境でも表示は継続する。
+    }
+  }
   document.documentElement.lang = activeLang;
   document.title = translate("page.title");
   document.querySelectorAll("[data-i18n]").forEach((node) => {
