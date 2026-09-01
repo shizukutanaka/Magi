@@ -3,7 +3,17 @@
 from datetime import date
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
-from app.divination.data.bazi import ANIMALS, BRANCHES, COMPATIBILITY, ELEMENTS, STEMS
+from app.divination.data.bazi import (
+    ANIMALS,
+    BRANCH_MEANINGS,
+    BRANCHES,
+    COMPATIBILITY,
+    DAY_BRANCH_MEANINGS,
+    DAY_STEM_MEANINGS,
+    ELEMENTS,
+    STEM_MEANINGS,
+    STEMS,
+)
 from app.divination.data.localize import dt
 from app.divination.engines._common import finish
 from app.divination.registry import register
@@ -47,7 +57,30 @@ class BaziEngine:
         day_pillar = _localized_pillar(day_stem_index, day_branch_index, lang)
         year_animal = dt(lang, self.id, f"animal.{year_index % 12}", ANIMALS[year_index % 12])
         year_element = dt(lang, self.id, f"element.{year_index % 10}", ELEMENTS[year_index % 10])
-        day_element = dt(lang, self.id, f"element.{day_index % 10}", ELEMENTS[day_index % 10])
+        year_stem_meaning = dt(
+            lang,
+            self.id,
+            f"stem.{year_stem_index}.meaning",
+            STEM_MEANINGS[year_stem_index],
+        )
+        year_branch_meaning = dt(
+            lang,
+            self.id,
+            f"branch.{year_branch_index}.meaning",
+            BRANCH_MEANINGS[year_branch_index],
+        )
+        day_stem_meaning = dt(
+            lang,
+            self.id,
+            f"day_stem.{day_stem_index}.meaning",
+            DAY_STEM_MEANINGS[day_stem_index],
+        )
+        day_branch_meaning = dt(
+            lang,
+            self.id,
+            f"day_branch.{day_branch_index}.meaning",
+            DAY_BRANCH_MEANINGS[day_branch_index],
+        )
         compatibility = dt(
             lang,
             self.id,
@@ -70,9 +103,32 @@ class BaziEngine:
             self.id, t(lang, "engine.bazi.name"), t(lang, "engine.bazi.tradition"), rng.seed, drawn,
             t(lang, "summary.bazi", year=year_pillar, day=day_pillar),
             [
-                ReadingSection(title=t(lang, "section.bazi.year_pillar"), body=t(lang, "body.bazi.year_pillar", pillar=year_pillar, animal=year_animal, element=year_element)),
-                ReadingSection(title=t(lang, "section.bazi.day_pillar"), body=t(lang, "body.bazi.day_pillar", pillar=day_pillar, element=day_element)),
-                ReadingSection(title=t(lang, "section.bazi.compatibility"), body=compatibility),
+                ReadingSection(
+                    title=t(lang, "section.bazi.year_pillar"),
+                    body=t(
+                        lang,
+                        "body.bazi.year_pillar",
+                        pillar=year_pillar,
+                        animal=year_animal,
+                        element=year_element,
+                        stem_body=year_stem_meaning,
+                        branch_body=year_branch_meaning,
+                    ),
+                ),
+                ReadingSection(
+                    title=t(lang, "section.bazi.day_pillar"),
+                    body=t(
+                        lang,
+                        "body.bazi.day_pillar",
+                        pillar=day_pillar,
+                        stem_body=day_stem_meaning,
+                        branch_body=day_branch_meaning,
+                    ),
+                ),
+                ReadingSection(
+                    title=t(lang, "section.bazi.compatibility"),
+                    body=t(lang, "body.bazi.compatibility", detail=compatibility),
+                ),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.bazi.guidance")),
             ],
             None, rng, lang,

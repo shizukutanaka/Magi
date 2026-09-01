@@ -94,13 +94,22 @@ class GeomancyEngine:
                 ),
                 ReadingSection(
                     title=t(lang, "section.geomancy.story"),
-                    body=t(
-                        lang,
-                        "body.geomancy.story",
-                        name_right=dt(lang, self.id, f"{right.key}.name", right.name),
-                        witness_right=dt(lang, self.id, f"{right.key}.witness", right.witness),
-                        name_left=dt(lang, self.id, f"{left.key}.name", left.name),
-                        witness_left=dt(lang, self.id, f"{left.key}.witness", left.witness),
+                    body=(
+                        t(
+                            lang,
+                            "body.geomancy.story_same",
+                            name=dt(lang, self.id, f"{right.key}.name", right.name),
+                            witness=dt(lang, self.id, f"{right.key}.witness", right.witness),
+                        )
+                        if right == left
+                        else t(
+                            lang,
+                            "body.geomancy.story",
+                            name_right=dt(lang, self.id, f"{right.key}.name", right.name),
+                            witness_right=dt(lang, self.id, f"{right.key}.witness", right.witness),
+                            name_left=dt(lang, self.id, f"{left.key}.name", left.name),
+                            witness_left=dt(lang, self.id, f"{left.key}.witness", left.witness),
+                        )
                     ),
                 ),
                 ReadingSection(
