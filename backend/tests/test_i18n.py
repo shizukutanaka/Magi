@@ -222,7 +222,8 @@ def test_first_sentence(text, expected):
     assert first_sentence(text) == expected
 
 
-def test_lucky_items_keep_the_legacy_choice_order():
+def test_lucky_items_keep_a_fixed_choice_order():
+    # スコア乱数削除で一度変わった期待値であり、再変更はラッキーアイテムの非互換を示す。
     reading = get_engine("tarot").cast(
         DivinationInput(target_date=date(2026, 1, 1)),
         SeededRandom("0123456789abcdef"),

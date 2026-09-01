@@ -40,7 +40,7 @@ class TarotEngine:
                     position=position,
                     reversed=reversed_card,
                 )
-        )
+            )
         lead = cards[0]
         lead_meaning_key = "reversed_meaning" if drawn[0].reversed else "upright_meaning"
         lead_meaning_source = (
