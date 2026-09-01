@@ -12,7 +12,12 @@ from datetime import date
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.localize import dt
-from app.divination.data.mayan import GALACTIC_TONES, SOLAR_SEALS
+from app.divination.data.mayan import (
+    GALACTIC_TONE_MEANINGS,
+    GALACTIC_TONES,
+    SOLAR_SEAL_MEANINGS,
+    SOLAR_SEALS,
+)
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
@@ -66,9 +71,14 @@ class MayanEngine:
             self.id, t(lang, "engine.mayan.name"), t(lang, "engine.mayan.tradition"), rng.seed, drawn,
             t(lang, "summary.mayan", symbol=symbol, kin=kin),
             [
-                ReadingSection(title=t(lang, "section.mayan.galactic_tone"), body=t(lang, "body.mayan.galactic_tone", tone=localized_tone)),
-                ReadingSection(title=t(lang, "section.mayan.solar_seal"), body=t(lang, "body.mayan.solar_seal", seal=localized_seal)),
-                ReadingSection(title=t(lang, "section.mayan.flow"), body=t(lang, "body.mayan.flow")),
+                ReadingSection(
+                    title=t(lang, "section.mayan.galactic_tone"),
+                    body=dt(lang, self.id, f"galactic_tone.{tone_index}.meaning", GALACTIC_TONE_MEANINGS[tone_index]),
+                ),
+                ReadingSection(
+                    title=t(lang, "section.mayan.solar_seal"),
+                    body=dt(lang, self.id, f"solar_seal.{seal_index}.meaning", SOLAR_SEAL_MEANINGS[seal_index]),
+                ),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.mayan.guidance")),
             ],
             None, rng, lang,
