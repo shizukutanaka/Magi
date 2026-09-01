@@ -1,9 +1,11 @@
 """Mayan Tzolkin kin engine.
 
-The calculation uses the GMT correlation constant 584283. A proleptic
-Gregorian date is converted to a Julian day number, then ``JDN + 0 - 584283``
-is reduced into the 260-day cycle; the zero offset is a documented v1
-convention because this product does not use an ephemeris.
+The traditional Tzolkin count is used: a proleptic Gregorian date is
+converted to a Julian day number and reduced into the 260-day cycle with
+the GMT correlation constant 584283. Long Count 13.0.0.0.0 (JDN 584283 +
+1872000, i.e. 2012-12-21) is the documented 4 Ahau, so ``KIN_OFFSET``
+aligns the correlation day with kin 160 = 4 Ahau. This is not the
+Dreamspell count, which skips February 29.
 """
 
 from datetime import date
@@ -17,6 +19,10 @@ from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
 
 GMT_CORRELATION = 584283
+
+# kin 1 を「磁気の赤い竜」(1 Imix) としたとき 4 Ahau は kin 160 になる。
+# 相関日（JDN 584283）と 2012-12-21 を 4 Ahau に合わせるためのオフセット。
+KIN_OFFSET = 159
 
 
 def _julian_day(day: date) -> int:
@@ -36,7 +42,7 @@ class MayanEngine:
     def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
-        kin = ((_julian_day(inp.birth_date) - GMT_CORRELATION) % 260) + 1
+        kin = ((_julian_day(inp.birth_date) - GMT_CORRELATION + KIN_OFFSET) % 260) + 1
         seal_index = (kin - 1) % 20
         tone_index = (kin - 1) % 13
         seal = SOLAR_SEALS[seal_index]
