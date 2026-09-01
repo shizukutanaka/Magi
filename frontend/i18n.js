@@ -5,6 +5,10 @@ const CATALOGS = {
     "nav.history": "履歴",
     "nav.aria": "メインナビゲーション",
     "page.title": "Magi — 今日の三賢者",
+    "page.title.landing": "Magi — 今日の三賢者",
+    "page.title.reading": "Magi — 鑑定",
+    "page.title.result": "Magi — 鑑定結果",
+    "page.title.history": "Magi — 履歴",
     "language.label": "言語",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "今日の三賢者",
@@ -65,6 +69,10 @@ const CATALOGS = {
     "nav.history": "History",
     "nav.aria": "Main navigation",
     "page.title": "Magi — Daily Magi",
+    "page.title.landing": "Magi — Daily Magi",
+    "page.title.reading": "Magi — Reading",
+    "page.title.result": "Magi — Reading result",
+    "page.title.history": "Magi — History",
     "language.label": "Language",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "Daily Magi",
@@ -123,6 +131,7 @@ const CATALOGS = {
 
 export const SUPPORTED_LANGS = ["ja", "en"];
 let activeLang = "ja";
+let activeView = "landing";
 
 export function translate(key, params = {}) {
   const template = CATALOGS[activeLang][key] ?? CATALOGS.ja[key] ?? key;
@@ -131,6 +140,17 @@ export function translate(key, params = {}) {
 
 export function currentLanguage() {
   return activeLang;
+}
+
+export function setPageTitle(view = activeView) {
+  activeView = {
+    landing: "landing",
+    reading: "reading",
+    "reading-form": "reading",
+    result: "result",
+    history: "history",
+  }[view] ?? "landing";
+  document.title = translate(`page.title.${activeView}`);
 }
 
 export function resolveBrowserLanguage(params = new URLSearchParams(window.location.search)) {
@@ -157,7 +177,7 @@ export function setLanguage(lang, { persist = true } = {}) {
     }
   }
   document.documentElement.lang = activeLang;
-  document.title = translate("page.title");
+  setPageTitle();
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = translate(node.dataset.i18n);
   });

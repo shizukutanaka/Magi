@@ -1,5 +1,5 @@
 import { createReading, dailyReading, fetchSystems } from "./api.js";
-import { currentLanguage, resolveBrowserLanguage, setLanguage, translate } from "./i18n.js";
+import { currentLanguage, resolveBrowserLanguage, setLanguage, setPageTitle, translate } from "./i18n.js";
 import { addHistory, clearHistory, exportHistory, getSubjectKey, loadHistory } from "./store.js";
 
 const state = {
@@ -28,6 +28,7 @@ function setStatus(message = "") {
 }
 
 function showView(view, { focus = false } = {}) {
+  setPageTitle(view);
   panels.forEach((panel) => {
     panel.hidden = panel.id !== `view-${view}`;
   });
