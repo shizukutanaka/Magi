@@ -50,6 +50,14 @@ function updateFields() {
   document.querySelector("#birth-time").required = required.has("birth_time");
   document.querySelector("#full-name").required = required.has("full_name");
   document.querySelector("#question").required = required.has("question");
+  updateLabel("#question-field", required.has("question") ? "問い" : "問い（任意）");
+  updateLabel("#full-name-field", required.has("full_name") ? "氏名" : "氏名（任意）");
+}
+
+function updateLabel(selector, text) {
+  const label = document.querySelector(selector);
+  const textNode = [...label.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+  if (textNode) textNode.nodeValue = `\n            ${text}\n            `;
 }
 
 function populateSystems() {
@@ -102,6 +110,18 @@ function queryForReading(engineId, input, subjectKey) {
   return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
 
+function queryForDaily(input, subjectKey) {
+  const params = new URLSearchParams();
+  params.set("daily", "1");
+  params.set("date", input.target_date);
+  if (input.question) params.set("q", input.question);
+  if (input.birth_date) params.set("birth", input.birth_date);
+  if (input.birth_time) params.set("time", input.birth_time);
+  if (input.full_name) params.set("name", input.full_name);
+  params.set("s", subjectKey);
+  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+}
+
 function textWithLabel(label, value) {
   const wrapper = element("p");
   wrapper.append(element("strong", `${label}: `), document.createTextNode(String(value ?? "")));
@@ -134,6 +154,14 @@ function saveReading(reading, input, subjectKey) {
     url,
   });
   return url;
+}
+
+function formatTimestamp(value) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  const pad = (part) => String(part).padStart(2, "0");
+  return `${parsed.getFullYear()}/${pad(parsed.getMonth() + 1)}/${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
 function renderReading(reading, input, subjectKey) {
@@ -188,10 +216,15 @@ function renderResults(readings, input, subjectKey, overview, score) {
   result.append(element("p", "Magi / Result", "eyebrow"), element("h1", "鑑定結果"));
   if (overview) result.append(element("p", overview, "lead"));
   if (score !== undefined && score !== null) result.append(textWithLabel("平均スコア", score));
+  if (readings.length === 3) {
+    const dailyShare = element("button", "この三賢者の共有リンクをコピー");
+    dailyShare.type = "button";
+    dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectKey), dailyShare));
+    result.append(dailyShare);
+  }
   readings.forEach((reading) => {
-    const url = saveReading(reading, input, subjectKey);
+    saveReading(reading, input, subjectKey);
     result.append(renderReading(reading, input, subjectKey));
-    reading.shareUrl = url;
   });
   state.activeReadings = readings;
   state.activeInput = input;
@@ -242,10 +275,10 @@ function renderHistory() {
     link.href = entry.url;
     link.append(
       element("h2", entry.engine_name),
-      element("p", `${entry.tradition} · ${entry.generated_at || ""}`, "meta"),
+      element("p", `${entry.tradition} · ${formatTimestamp(entry.generated_at)}`, "meta"),
       element("p", entry.summary),
-      textWithLabel("スコア", entry.score),
     );
+    if (entry.score !== null && entry.score !== undefined) link.append(textWithLabel("スコア", entry.score));
     list.append(link);
   });
 }
@@ -287,7 +320,6 @@ async function init() {
     if (params.get("engine") || params.get("daily") === "1") {
       fillForm(params);
       const deepLinkSubject = params.get("s") || state.activeSubjectKey;
-      state.activeSubjectKey = deepLinkSubject;
       if (params.get("daily") === "1") {
         await runDaily({
           date: params.get("date") || today(),

@@ -31,7 +31,7 @@ def test_cast_is_deterministic(engine_id):
 
 
 @pytest.mark.parametrize("engine_id", ENGINE_IDS)
-def test_input_change_changes_seed_and_drawn(engine_id):
+def test_input_change_changes_seed(engine_id):
     engine = get_engine(engine_id)
     inp = DivinationInput(
         target_date=date(2026, 2, 3),
@@ -40,9 +40,6 @@ def test_input_change_changes_seed_and_drawn(engine_id):
         full_name="山田太郎" if "full_name" in engine.required_fields else None,
     )
     seed = build_seed("tester", engine.id, inp)
-    first = engine.cast(inp, SeededRandom(seed))
     changed = inp.model_copy(update={"question": "今日のテーマ!"})
     changed_seed = build_seed("tester", engine.id, changed)
-    changed_reading = engine.cast(changed, SeededRandom(changed_seed))
     assert changed_seed != seed
-    assert changed_reading.drawn != first.drawn

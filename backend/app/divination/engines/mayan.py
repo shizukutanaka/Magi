@@ -29,6 +29,7 @@ class MayanEngine:
     name = "マヤ暦ツォルキン"
     tradition = "中米"
     required_fields = frozenset({"birth_date"})
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:
@@ -36,7 +37,14 @@ class MayanEngine:
         kin = ((_julian_day(inp.birth_date) - GMT_CORRELATION) % 260) + 1
         seal = SOLAR_SEALS[(kin - 1) % 20]
         tone = GALACTIC_TONES[(kin - 1) % 13]
-        drawn = [DrawnSymbol(key=f"kin-{kin}", name=f"{tone}{seal}", position="誕生キン", image_hint=f"mayan/{kin}")]
+        drawn = [
+            DrawnSymbol(
+                key=f"kin-{kin}",
+                name=f"{tone}{seal}",
+                position="誕生キン",
+                image_hint=f"mayan/kin-{kin}",
+            )
+        ]
         return finish(
             self.id, self.name, self.tradition, rng.seed, drawn,
             f"{tone}{seal}（KIN {kin}）の象徴は、自分のリズムで才能を育てることを促します。",

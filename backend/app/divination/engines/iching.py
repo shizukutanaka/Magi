@@ -12,6 +12,7 @@ class IChingEngine:
     name = "易経（周易）"
     tradition = "中国"
     required_fields = frozenset()
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         lines = [sum(rng.randint(2, 3) for _ in range(3)) for _ in range(6)]
@@ -20,9 +21,23 @@ class IChingEngine:
         changed_lines = [8 if line == 9 else 7 if line == 6 else line for line in lines]
         changed_number = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(changed_lines)) + 1
         changed = CARDS[changed_number - 1]
-        drawn = [DrawnSymbol(key=f"hex-{primary.number:02d}", name=primary.name_ja, position="本卦")]
+        drawn = [
+            DrawnSymbol(
+                key=f"hex-{primary.number:02d}",
+                name=primary.name_ja,
+                position="本卦",
+                image_hint=f"iching/hex-{primary.number:02d}",
+            )
+        ]
         if changed_number != number:
-            drawn.append(DrawnSymbol(key=f"hex-{changed.number:02d}", name=changed.name_ja, position="之卦"))
+            drawn.append(
+                DrawnSymbol(
+                    key=f"hex-{changed.number:02d}",
+                    name=changed.name_ja,
+                    position="之卦",
+                    image_hint=f"iching/hex-{changed.number:02d}",
+                )
+            )
         return finish(
             self.id, self.name, self.tradition, rng.seed, drawn,
             f"本卦{primary.name_ja}は、{primary.interpretation.split('。')[0]}。"

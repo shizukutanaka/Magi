@@ -21,6 +21,7 @@ class AstrologyEngine:
     name = "西洋占星術"
     tradition = "西洋"
     required_fields = frozenset({"birth_date"})
+    default_options: dict[str, str] = {}
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:
@@ -32,8 +33,8 @@ class AstrologyEngine:
         ruler = WEEKDAY_RULERS[inp.target_date.weekday()]
         drawn = [
             DrawnSymbol(key=sign, name=sign, position="太陽星座", image_hint=f"astrology/{sign}"),
-            DrawnSymbol(key=phase, name=phase, position="月相"),
-            DrawnSymbol(key=ruler, name=ruler, position="曜日の支配星"),
+            DrawnSymbol(key=phase, name=phase, position="月相", image_hint=f"astrology/{phase}"),
+            DrawnSymbol(key=ruler, name=ruler, position="曜日の支配星", image_hint=f"astrology/{ruler}"),
         ]
         return finish(
             self.id, self.name, self.tradition, rng.seed, drawn,
