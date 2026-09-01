@@ -18,3 +18,12 @@ COMPATIBILITY = {
     "戌": "卯と信頼を育て、辰とは結論を急ぎません。",
     "亥": "寅と志を共有し、巳とは境界を保ちます。",
 }
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    {
+        *(f"stem.{index}" for index in range(len(STEMS))),
+        *(f"branch.{index}" for index in range(len(BRANCHES))),
+        *(f"animal.{index}" for index in range(len(ANIMALS))),
+        *(f"element.{index}" for index in range(len(ELEMENTS))),
+        *(f"compatibility.{branch}" for branch in COMPATIBILITY),
+    }
+)

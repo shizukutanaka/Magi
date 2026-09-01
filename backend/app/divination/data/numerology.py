@@ -5,3 +5,4 @@ LETTER_VALUES = {
     for letter in "abcdefghijklmnopqrstuvwxyz"
 }
 MASTER_NUMBERS = (11, 22, 33)
+TRANSLATABLE_KEYS: frozenset[str] = frozenset()

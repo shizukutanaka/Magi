@@ -94,3 +94,9 @@ CARDS: tuple[TarotCard, ...] = (
     TarotCard("queen-of-pentacles", "ペンタクルのクイーン", "小アルカナ", ("実用性", "養育", "豊かさ"), ("過保護", "不安", "自己軽視"), "生活の細部を整え、人と資源を現実的に育てる温かな知恵が周囲の安心を支えます。", "世話を焼きすぎて自分の余力がありません。まず自分の身体と予算を守りましょう。"),
     TarotCard("king-of-pentacles", "ペンタクルのキング", "小アルカナ", ("成功", "経営", "信頼"), ("強欲", "停滞", "所有欲"), "経験と資源を堅実に運用し、長期的な価値を生む責任ある成功へ導けます。", "利益や所有が目的になり、人との信頼を損ねています。豊かさを分かち合う計画を持ちましょう。"),
 )
+
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    f"{card.key}.{field}"
+    for card in CARDS
+    for field in ("name", "upright_meaning", "reversed_meaning")
+)

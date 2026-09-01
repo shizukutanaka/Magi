@@ -4,11 +4,19 @@ from datetime import date
 import pytest
 
 from app.divination.base import DivinationInput
+from app.divination.data.en import TEXTS as EN_TEXTS
 from app.divination.data.omikuji import CATEGORIES
+from app.divination.engines._common import first_sentence
+from app.divination.interpretation import (
+    TRANSLATABLE_KEYS_BY_ENGINE,
+    interpretation_langs,
+)
 from app.divination.registry import all_engines, get_engine
 from app.divination.seed import SeededRandom, build_seed
 from app.divination.service import daily_reading
-from app.i18n import CATALOGS, DEFAULT_LANG, INTERPRETATION_LANGS, resolve_lang, t
+from app.i18n import CATALOGS, DEFAULT_LANG, resolve_lang, t
+
+CJK = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
 
 
 def input_for(engine):
@@ -98,9 +106,11 @@ def test_data_sourced_omikuji_content_remains_japanese_by_declaration():
     assert [section.title for section in english.sections[1:]] == [
         section.title for section in japanese.sections[1:]
     ]
-    assert [section.body for section in english.sections[1:]] == [
-        section.body for section in japanese.sections[1:]
+    assert [section.body for section in english.sections] != [
+        section.body for section in japanese.sections
     ]
+    assert all(not CJK.search(section.body) for section in english.sections)
+    assert all(not CJK.search(symbol.name) for symbol in english.drawn)
 
 
 @pytest.mark.parametrize(
@@ -126,6 +136,60 @@ def test_catalog_translation_falls_back_to_japanese_and_missing_keys_are_loud():
         t(DEFAULT_LANG, "missing.key")
 
 
+def test_interpretation_translation_keys_are_covered_and_nonempty():
+    for engine_id in ("runes", "geomancy", "omikuji"):
+        keys = TRANSLATABLE_KEYS_BY_ENGINE[engine_id]
+        assert keys <= EN_TEXTS[engine_id].keys()
+        assert all(EN_TEXTS[engine_id][key] for key in keys)
+        assert all(not CJK.search(value) for value in EN_TEXTS[engine_id].values())
+
+
+def test_interpretation_language_coverage():
+    assert interpretation_langs("runes") == ("ja", "en")
+    assert interpretation_langs("geomancy") == ("ja", "en")
+    assert interpretation_langs("omikuji") == ("ja", "en")
+    assert all(
+        interpretation_langs(engine.id) == ("ja",)
+        for engine in all_engines()
+        if engine.id not in {"runes", "geomancy", "omikuji"}
+    )
+
+
+def test_english_data_casts_contain_no_cjk():
+    for engine_id in ("runes", "geomancy", "omikuji"):
+        reading = cast(engine_id, "en")
+        assert not CJK.search(reading.summary)
+        assert all(not CJK.search(section.body) for section in reading.sections)
+        assert all(not CJK.search(symbol.name) for symbol in reading.drawn)
+
+
+def test_omikuji_grade_key_is_language_invariant():
+    japanese = cast("omikuji", "ja")
+    english = cast("omikuji", "en")
+    assert japanese.drawn[0].key == english.drawn[0].key
+    assert japanese.drawn[0].key in {
+        "great-blessing",
+        "middle-blessing",
+        "small-blessing",
+        "blessing",
+        "future-blessing",
+        "curse",
+        "great-curse",
+    }
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("日本語の一文。次の文です。", "日本語の一文"),
+        ("The first sentence. The next sentence.", "The first sentence"),
+        ("No terminator", "No terminator"),
+    ],
+)
+def test_first_sentence(text, expected):
+    assert first_sentence(text) == expected
+
+
 def test_lucky_items_keep_the_legacy_choice_order():
     reading = get_engine("tarot").cast(
         DivinationInput(target_date=date(2026, 1, 1)),
@@ -140,5 +204,5 @@ def test_lucky_items_keep_the_legacy_choice_order():
 
 
 def test_interpretation_language_follows_registry(monkeypatch):
-    monkeypatch.setitem(INTERPRETATION_LANGS, "tarot", ("ja", "en"))
-    assert cast("tarot", "en").interpretation_lang == "en"
+    monkeypatch.setitem(TRANSLATABLE_KEYS_BY_ENGINE, "runes", frozenset({"fehu.name"}))
+    assert cast("runes", "en").interpretation_lang == "en"

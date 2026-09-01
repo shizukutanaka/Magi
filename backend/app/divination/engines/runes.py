@@ -1,6 +1,7 @@
 """Elder Futhark three-rune engine."""
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
+from app.divination.data.localize import dt
 from app.divination.data.runes import RUNES
 from app.divination.engines._common import finish
 from app.divination.registry import register
@@ -23,7 +24,7 @@ class RunesEngine:
             drawn.append(
                 DrawnSymbol(
                     key=rune.key,
-                    name=rune.name_ja,
+                    name=dt(lang, self.id, f"{rune.key}.name", rune.name_ja),
                     position=t(lang, f"position.runes.{position_key}"),
                     reversed=reversed_rune,
                     image_hint=f"runes/{rune.key}",
@@ -31,9 +32,15 @@ class RunesEngine:
             )
         first = runes[0]
         first_meaning = first.reversed_meaning if drawn[0].reversed else first.meaning
+        first_meaning = dt(
+            lang,
+            self.id,
+            f"{first.key}.reversed_meaning" if drawn[0].reversed else f"{first.key}.meaning",
+            first_meaning,
+        )
         return finish(
             self.id, t(lang, "engine.runes.name"), t(lang, "engine.runes.tradition"), rng.seed, drawn,
-            t(lang, "summary.runes", name=first.name_ja, meaning=first_meaning),
+            t(lang, "summary.runes", name=drawn[0].name, meaning=first_meaning),
             [
                 ReadingSection(title=t(lang, "section.overall"), body=first_meaning),
                 ReadingSection(title=t(lang, "section.runes_flow"), body=t(lang, "body.runes.flow")),

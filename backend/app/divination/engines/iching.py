@@ -2,7 +2,7 @@
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.iching import CARDS
-from app.divination.engines._common import finish
+from app.divination.engines._common import finish, first_sentence
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
@@ -45,7 +45,7 @@ class IChingEngine:
                 lang,
                 "summary.iching.primary",
                 name=primary.name_ja,
-                meaning=primary.interpretation.split("。")[0],
+                meaning=first_sentence(primary.interpretation),
                 change=t(lang, "body.iching.change", changed_name=changed.name_ja) if changed_number != number else "",
             ),
             [

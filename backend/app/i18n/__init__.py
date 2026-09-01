@@ -9,20 +9,6 @@ Lang = Literal["ja", "en"]
 SUPPORTED_LANGS: tuple[Lang, ...] = ("ja", "en")
 DEFAULT_LANG: Lang = "ja"
 CATALOGS: dict[Lang, dict[str, str]] = {"ja": JA_MESSAGES, "en": EN_MESSAGES}
-INTERPRETATION_LANGS: dict[str, tuple[str, ...]] = {
-    engine_id: ("ja",)
-    for engine_id in (
-        "tarot",
-        "iching",
-        "runes",
-        "omikuji",
-        "astrology",
-        "numerology",
-        "bazi",
-        "mayan",
-        "geomancy",
-    )
-}
 
 
 def _primary(value: str) -> str:

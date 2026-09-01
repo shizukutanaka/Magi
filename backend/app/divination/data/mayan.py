@@ -6,3 +6,9 @@ SOLAR_SEALS = (
     "赤い地球", "白い鏡", "青い嵐", "黄色い太陽",
 )
 GALACTIC_TONES = ("磁気の", "月の", "電気の", "自己存在の", "倍音の", "律動の", "共振の", "銀河の", "太陽の", "惑星の", "スペクトルの", "水晶の", "宇宙の")
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    {
+        *(f"solar_seal.{index}" for index in range(len(SOLAR_SEALS))),
+        *(f"galactic_tone.{index}" for index in range(len(GALACTIC_TONES))),
+    }
+)

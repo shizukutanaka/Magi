@@ -40,3 +40,8 @@ _ROWS = [
 ]
 
 RUNES: tuple[Rune, ...] = tuple(Rune(*row) for row in _ROWS)
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    f"{rune.key}.{field}"
+    for rune in RUNES
+    for field in ("name", "meaning", "reversed_meaning")
+)

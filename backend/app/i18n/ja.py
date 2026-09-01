@@ -1,6 +1,7 @@
 """Japanese presentation catalog."""
 
 MESSAGES = {
+    "list.separator": "・",
     "engine.tarot.name": "タロット",
     "engine.tarot.tradition": "西洋",
     "engine.iching.name": "易経（周易）",

@@ -1,6 +1,7 @@
 """English presentation catalog."""
 
 MESSAGES = {
+    "list.separator": ", ",
     "engine.tarot.name": "Tarot",
     "engine.tarot.tradition": "Western",
     "engine.iching.name": "I Ching",
@@ -108,7 +109,7 @@ MESSAGES = {
     "body.mayan.flow": "Use your birth symbol not as fixed fate, but as a mirror for reconsidering your choices.",
     "body.mayan.guidance": "The Tzolk'in calculation is an abridged method based on the GMT correlation constant 584283.",
     "body.geomancy.guidance": "Trace the shield chart from its mothers to the Judge, reading the links between stages rather than any symbol alone.",
-    "body.geomancy.story": "First comes {name_right}. {witness_right}Then comes {name_left}. {witness_left}",
+    "body.geomancy.story": "First comes {name_right}. {witness_right} Then comes {name_left}. {witness_left}",
     "error.unknown_spread": "Unknown spread.",
     "daily.overview": "{count} traditions point to {names} as shared clues.",
     "disclaimer": "This reading is for entertainment and self-reflection, not medical, legal, or investment advice.",

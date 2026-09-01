@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.geomancy import FIGURES_BY_LINES, GeomancyFigure
+from app.divination.data.localize import dt
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
@@ -63,7 +64,7 @@ class GeomancyEngine:
         drawn = [
             DrawnSymbol(
                 key=figure.key,
-                name=figure.name,
+                name=dt(lang, self.id, f"{figure.key}.name", figure.name),
                 position=t(lang, f"position.geomancy.{position}"),
                 reversed=False,
                 image_hint=f"geomancy/{figure.key}",
@@ -81,21 +82,32 @@ class GeomancyEngine:
             t(lang, "engine.geomancy.tradition"),
             rng.seed,
             drawn,
-            t(lang, "summary.geomancy", name=judge.name, judgment=judge.judgment),
+            t(
+                lang,
+                "summary.geomancy",
+                name=dt(lang, self.id, f"{judge.key}.name", judge.name),
+                judgment=dt(lang, self.id, f"{judge.key}.judgment", judge.judgment),
+            ),
             [
-                ReadingSection(title=t(lang, "section.overall"), body=judge.judgment),
+                ReadingSection(
+                    title=t(lang, "section.overall"),
+                    body=dt(lang, self.id, f"{judge.key}.judgment", judge.judgment),
+                ),
                 ReadingSection(
                     title=t(lang, "section.geomancy.story"),
                     body=t(
                         lang,
                         "body.geomancy.story",
-                        name_right=right.name,
-                        witness_right=right.witness,
-                        name_left=left.name,
-                        witness_left=left.witness,
+                        name_right=dt(lang, self.id, f"{right.key}.name", right.name),
+                        witness_right=dt(lang, self.id, f"{right.key}.witness", right.witness),
+                        name_left=dt(lang, self.id, f"{left.key}.name", left.name),
+                        witness_left=dt(lang, self.id, f"{left.key}.witness", left.witness),
                     ),
                 ),
-                ReadingSection(title=t(lang, "section.practice"), body=judge.practice),
+                ReadingSection(
+                    title=t(lang, "section.practice"),
+                    body=dt(lang, self.id, f"{judge.key}.practice", judge.practice),
+                ),
                 ReadingSection(
                     title=t(lang, "section.guidance"),
                     body=t(lang, "body.geomancy.guidance"),
