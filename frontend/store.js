@@ -1,3 +1,5 @@
+import { sha256 } from "./sha256.js";
+
 const SUBJECT_KEY = "magi.subject_key";
 const HISTORY_KEY = "magi.history";
 const HISTORY_LIMIT = 100;
@@ -48,6 +50,19 @@ export function getSubjectKey() {
   if (!memorySubjectKey) memorySubjectKey = randomId();
   writeItem(SUBJECT_KEY, memorySubjectKey);
   return memorySubjectKey;
+}
+
+export function deriveSubjectToken(scope, input) {
+  const message = [
+    getSubjectKey(),
+    scope,
+    input.target_date ?? "",
+    input.question ?? "",
+    input.birth_date ?? "",
+    input.full_name ?? "",
+    input.options?.spread ?? "",
+  ].join("\n");
+  return sha256(message);
 }
 
 export function loadHistory() {
