@@ -7,7 +7,6 @@ names and other scripts are handled without silently discarding their value.
 
 import unicodedata
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.numerology import LETTER_VALUES, MASTER_NUMBERS
 from app.divination.engines._common import finish
@@ -40,7 +39,6 @@ class NumerologyEngine:
     name = "数秘術"
     tradition = "西洋（ピタゴラス）"
     required_fields = frozenset({"full_name", "birth_date"})
-    min_tier = Tier.PLUS
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.full_name is None or inp.birth_date is None:

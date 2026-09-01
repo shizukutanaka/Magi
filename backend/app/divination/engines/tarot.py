@@ -1,11 +1,12 @@
 """Rider-Waite-Smith tarot engine."""
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.tarot import CARDS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+
+ALLOWED_SPREADS = ("three-card", "celtic-cross")
 
 
 class TarotEngine:
@@ -13,10 +14,11 @@ class TarotEngine:
     name = "タロット"
     tradition = "西洋"
     required_fields = frozenset()
-    min_tier = Tier.FREE
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         spread = inp.options.get("spread", "three-card")
+        if spread not in ALLOWED_SPREADS:
+            raise ValueError(f"unknown tarot spread: {spread}")
         positions = (
             ("過去", "present"), ("現在", "present"), ("未来", "present")
         ) if spread == "three-card" else (
