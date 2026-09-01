@@ -5,6 +5,7 @@ import { addHistory, clearHistory, exportHistory, getSubjectKey, loadHistory } f
 const state = {
   systems: [],
   activeSubjectKey: null,
+  activeReadingSubject: null,
   activeInput: null,
   activeReadings: [],
   activeDaily: false,
@@ -26,10 +27,20 @@ function setStatus(message = "") {
   status.textContent = message;
 }
 
-function showView(view) {
+function showView(view, { focus = false } = {}) {
   panels.forEach((panel) => {
     panel.hidden = panel.id !== `view-${view}`;
   });
+  const currentView = view === "result" ? "reading-form" : view;
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    if (button.dataset.view === currentView) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  if (focus) {
+    const panel = document.querySelector(`#view-${view}`);
+    const target = view === "result" ? panel : panel?.querySelector("h1");
+    target?.focus();
+  }
 }
 
 function today() {
@@ -144,7 +155,7 @@ async function copyValue(value, button) {
 
 function saveReading(reading, input, subjectKey) {
   const url = queryForReading(reading.engine_id, input, subjectKey);
-  addHistory({
+  const saved = addHistory({
     engine_id: reading.engine_id,
     engine_name: reading.engine_name,
     tradition: reading.tradition,
@@ -154,7 +165,7 @@ function saveReading(reading, input, subjectKey) {
     generated_at: reading.generated_at,
     url,
   });
-  return url;
+  return { url, saved };
 }
 
 function formatTimestamp(value) {
@@ -226,14 +237,17 @@ function renderResults(readings, input, subjectKey, { overview, score, daily = f
     dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectKey), dailyShare));
     result.append(dailyShare);
   }
+  let historyFailed = false;
   readings.forEach((reading) => {
-    saveReading(reading, input, subjectKey);
+    if (!saveReading(reading, input, subjectKey).saved) historyFailed = true;
     result.append(renderReading(reading, input, subjectKey));
   });
+  if (historyFailed) setStatus(translate("status.history_unavailable"));
   state.activeReadings = readings;
   state.activeInput = input;
   state.activeDaily = daily;
-  showView("result");
+  state.activeReadingSubject = subjectKey;
+  showView("result", { focus: true });
 }
 
 async function runDaily(params = {}) {
@@ -248,12 +262,12 @@ async function runDaily(params = {}) {
   try {
     const subjectKey = params.subjectKey || state.activeSubjectKey;
     const response = await dailyReading({ ...input, subject_key: subjectKey, lang: state.lang });
+    setStatus("");
     renderResults(response.readings, input, subjectKey, {
       overview: response.overview,
       score: response.score,
       daily: true,
     });
-    setStatus("");
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   }
@@ -263,8 +277,8 @@ async function runReading(input = inputFromForm(), engineId = engineSelect.value
   setStatus(translate("status.reading"));
   try {
     const reading = await createReading({ engine_id: engineId, input, subject_key: subjectKey, lang: state.lang });
-    renderResults([reading], input, subjectKey, {});
     setStatus("");
+    renderResults([reading], input, subjectKey, {});
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   }
@@ -300,7 +314,7 @@ function setupEvents() {
     button.addEventListener("click", () => {
       const view = button.dataset.view;
       if (view === "history") renderHistory();
-      showView(view);
+      showView(view, { focus: true });
     });
   });
   engineSelect.addEventListener("change", updateFields);
@@ -331,10 +345,10 @@ async function changeLanguage(lang) {
         question: state.activeInput.question,
         birth_date: state.activeInput.birth_date,
         full_name: state.activeInput.full_name,
-        subjectKey: state.activeSubjectKey,
+        subjectKey: state.activeReadingSubject || state.activeSubjectKey,
       });
     } else {
-      await runReading(state.activeInput, previousEngine, state.activeSubjectKey);
+      await runReading(state.activeInput, previousEngine, state.activeReadingSubject || state.activeSubjectKey);
     }
   }
 }
@@ -346,6 +360,7 @@ async function init() {
   state.activeSubjectKey = getSubjectKey();
   document.querySelector("#target-date").value = today();
   setupEvents();
+  showView("landing");
   try {
     state.systems = await fetchSystems(state.lang);
     populateSystems();

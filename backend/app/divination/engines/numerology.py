@@ -1,14 +1,15 @@
 """Pythagorean numerology with deterministic Unicode support.
 
-ASCII letters use the traditional A=1..I=9 cycle. Non-ASCII characters are
-normalized with NFKC and mapped by ``Unicode code point % 9 + 1`` so Japanese
-names and other scripts are handled without silently discarding their value.
+ASCII letters use the traditional A=1..I=9 cycle. After NFKC normalization,
+only alphabetic characters are counted; non-ASCII letters are mapped by
+``Unicode code point % 9 + 1`` so Japanese names and other scripts are handled.
 """
 
 import unicodedata
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
-from app.divination.data.numerology import LETTER_VALUES, MASTER_NUMBERS
+from app.divination.data.localize import dt
+from app.divination.data.numerology import LETTER_VALUES, MASTER_NUMBERS, NUMBERS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
@@ -26,7 +27,7 @@ def _name_number(name: str) -> int:
     values = [
         LETTER_VALUES[char] if char in LETTER_VALUES else (ord(char) % 9) + 1
         for char in normalized
-        if not char.isspace()
+        if char.isalpha()
     ]
     return _reduce(sum(values))
 
@@ -63,12 +64,26 @@ class NumerologyEngine:
             self.id, t(lang, "engine.numerology.name"), t(lang, "engine.numerology.tradition"), rng.seed, drawn,
             t(lang, "summary.numerology", life_path=life_path, destiny=destiny),
             [
-                ReadingSection(title=t(lang, "section.numerology.life_path"), body=t(lang, "body.numerology.life_path", life_path=life_path)),
-                ReadingSection(title=t(lang, "section.numerology.destiny"), body=t(lang, "body.numerology.destiny", destiny=destiny)),
+                ReadingSection(
+                    title=t(lang, "section.numerology.life_path"),
+                    body=dt(lang, self.id, f"{life_path}.life_path", NUMBERS[str(life_path)].life_path),
+                ),
+                ReadingSection(
+                    title=t(lang, "section.numerology.destiny"),
+                    body=dt(lang, self.id, f"{destiny}.destiny", NUMBERS[str(destiny)].destiny),
+                ),
                 ReadingSection(title=t(lang, "section.numerology.practice"), body=t(lang, "body.numerology.practice")),
-                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.numerology.guidance")),
+                ReadingSection(
+                    title=t(lang, "section.guidance"),
+                    body=t(
+                        lang,
+                        "body.numerology.guidance"
+                        if life_path in MASTER_NUMBERS or destiny in MASTER_NUMBERS
+                        else "body.numerology.guidance_plain",
+                    ),
+                ),
             ],
-            rng.randint(40, 96), rng, lang,
+            None, rng, lang,
         )
 
 

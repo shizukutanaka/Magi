@@ -55,7 +55,8 @@ def cast_reading(
     missing = [field for field in engine.required_fields if getattr(inp, field, None) is None]
     if missing:
         raise MissingFieldsError(missing)
-    inp = inp.model_copy(update={"options": {**engine.default_options, **inp.options}})
+    known = {key: value for key, value in inp.options.items() if key in engine.default_options}
+    inp = inp.model_copy(update={"options": {**engine.default_options, **known}})
     if engine.id == "tarot":
         _validate_spread(inp)
     seed = build_seed(subject_key, engine.id, inp)

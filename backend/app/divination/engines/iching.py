@@ -1,12 +1,17 @@
 """Six-coin I Ching engine."""
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
-from app.divination.data.iching import CARDS
+from app.divination.data.iching import CARDS, KING_WEN_BY_LINES
 from app.divination.data.localize import dt
 from app.divination.engines._common import finish, first_sentence
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
+
+
+def _hexagram_number(lines: list[int]) -> int:
+    bits = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(lines))
+    return KING_WEN_BY_LINES[bits]
 
 
 class IChingEngine:
@@ -18,10 +23,10 @@ class IChingEngine:
 
     def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         lines = [sum(rng.randint(2, 3) for _ in range(3)) for _ in range(6)]
-        number = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(lines)) + 1
+        number = _hexagram_number(lines)
         primary = CARDS[number - 1]
         changed_lines = [8 if line == 9 else 7 if line == 6 else line for line in lines]
-        changed_number = sum((1 if line in (7, 9) else 0) << index for index, line in enumerate(changed_lines)) + 1
+        changed_number = _hexagram_number(changed_lines)
         changed = CARDS[changed_number - 1]
         primary_key = f"hex-{primary.number:02d}"
         changed_key = f"hex-{changed.number:02d}"
@@ -69,7 +74,7 @@ class IChingEngine:
                 ReadingSection(title=t(lang, "section.iching.change"), body=changed_interpretation if changed_number != number else t(lang, "body.iching.no_change")),
                 ReadingSection(title=t(lang, "section.practice"), body=t(lang, "body.iching.practice")),
             ],
-            rng.randint(40, 92), rng, lang,
+            None, rng, lang,
         )
 
 

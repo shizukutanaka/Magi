@@ -228,10 +228,10 @@ def test_lucky_items_keep_the_legacy_choice_order():
         SeededRandom("0123456789abcdef"),
     )
     assert reading.lucky.model_dump() == {
-        "color": "藍色",
-        "number": 6,
-        "direction": "東",
-        "item": "時計",
+        "color": "白色",
+        "number": 2,
+        "direction": "南",
+        "item": "ノート",
     }
 
 

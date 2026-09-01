@@ -10,6 +10,8 @@ from app.divination.registry import register
 from app.divination.seed import SeededRandom
 from app.i18n import Lang, t
 
+SYNODIC_MONTH = 29.530588853
+
 
 def sun_sign(birth_date: date) -> int:
     for index, (_, start, end, _, _) in enumerate(ZODIAC):
@@ -32,7 +34,10 @@ class AstrologyEngine:
         sign, _, _, element, quality = ZODIAC[zodiac_index]
         epoch = date(2000, 1, 6)
         days = (inp.target_date - epoch).days
-        phase_index = int((days % 29.530588853) / (29.530588853 / 8))
+        # 8つの名前は各位相を中心とする区間なので、半ビンずらして分類する
+        phase_index = int(
+            ((days + SYNODIC_MONTH / 16) % SYNODIC_MONTH) / (SYNODIC_MONTH / 8)
+        ) % 8
         phase = MOON_PHASES[phase_index]
         ruler_index = inp.target_date.weekday()
         ruler = WEEKDAY_RULERS[ruler_index]
@@ -59,7 +64,7 @@ class AstrologyEngine:
                 ReadingSection(title=t(lang, "section.astrology.weekday_ruler"), body=t(lang, "body.astrology.weekday_ruler", ruler=localized_ruler)),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.astrology.guidance")),
             ],
-            rng.randint(45, 93), rng, lang,
+            None, rng, lang,
         )
 
 

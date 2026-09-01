@@ -24,7 +24,7 @@ def finish(
     drawn: list[DrawnSymbol],
     summary: str,
     sections: list[ReadingSection],
-    score: int,
+    score: int | None,
     rng: SeededRandom,
     lang: Lang = "ja",
 ) -> Reading:
@@ -41,7 +41,7 @@ def finish(
         drawn=drawn,
         summary=summary,
         sections=sections,
-        score=max(0, min(100, score)),
+        score=None if score is None else max(0, min(100, score)),
         lucky=LuckyItems(
             color=t(lang, f"lucky.color.{rng.choice(colors)}"),
             number=rng.randint(1, 9),

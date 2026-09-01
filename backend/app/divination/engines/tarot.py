@@ -23,15 +23,15 @@ class TarotEngine:
         if spread not in ALLOWED_SPREADS:
             raise ValueError(f"unknown tarot spread: {spread}")
         positions = (
-            (t(lang, "position.tarot.past"), "present"), (t(lang, "position.tarot.present"), "present"), (t(lang, "position.tarot.future"), "present")
+            t(lang, "position.tarot.past"), t(lang, "position.tarot.present"), t(lang, "position.tarot.future")
         ) if spread == "three-card" else (
-            (t(lang, "position.tarot.current"), "present"), (t(lang, "position.tarot.challenge"), "present"), (t(lang, "position.tarot.past"), "present"), (t(lang, "position.tarot.near_future"), "present"),
-            (t(lang, "position.tarot.conscious"), "present"), (t(lang, "position.tarot.unconscious"), "present"), (t(lang, "position.tarot.self"), "present"), (t(lang, "position.tarot.environment"), "present"),
-            (t(lang, "position.tarot.hope"), "present"), (t(lang, "position.tarot.conclusion"), "present"),
+            t(lang, "position.tarot.current"), t(lang, "position.tarot.challenge"), t(lang, "position.tarot.past"), t(lang, "position.tarot.near_future"),
+            t(lang, "position.tarot.conscious"), t(lang, "position.tarot.unconscious"), t(lang, "position.tarot.self"), t(lang, "position.tarot.environment"),
+            t(lang, "position.tarot.hope"), t(lang, "position.tarot.conclusion"),
         )
         cards = rng.sample(CARDS, len(positions))
         drawn = []
-        for card, (position, _) in zip(cards, positions, strict=True):
+        for card, position in zip(cards, positions, strict=True):
             reversed_card = bool(rng.randint(0, 1))
             drawn.append(
                 DrawnSymbol(
@@ -58,7 +58,7 @@ class TarotEngine:
                 ReadingSection(title=t(lang, "section.finance"), body=t(lang, "body.tarot.finance")),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.tarot.guidance")),
             ],
-            rng.randint(45, 95), rng, lang,
+            None, rng, lang,
         )
 
 

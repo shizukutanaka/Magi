@@ -27,7 +27,7 @@
 
       <section id="view-landing" data-view-panel>
         <p class="eyebrow" data-i18n="landing.eyebrow">Magi / Daily Magi</p>
-        <h1 data-i18n="landing.title">今日の三賢者</h1>
+        <h1 tabindex="-1" data-i18n="landing.title">今日の三賢者</h1>
         <p class="lead" data-i18n="landing.lead">異なる伝統の象徴を並べ、今日の問いを静かに見つめます。</p>
         <button id="daily-button" class="primary-button" type="button" data-i18n="landing.start">今日の鑑定をはじめる</button>
         <p class="privacy-note" data-i18n="privacy.note">ログイン不要。入力は鑑定計算にのみ使われ、サーバには保存されません。</p>
@@ -35,7 +35,7 @@
 
       <section id="view-reading-form" data-view-panel hidden>
         <p class="eyebrow" data-i18n="reading.eyebrow">Magi / Reading</p>
-        <h1 data-i18n="reading.title">鑑定</h1>
+        <h1 tabindex="-1" data-i18n="reading.title">鑑定</h1>
         <form id="reading-form">
           <label>
             <span data-i18n="form.engine">占術</span>
@@ -47,7 +47,7 @@
           </label>
           <label id="question-field">
             <span id="question-label">問い（任意）</span>
-            <textarea id="question" name="question" rows="3" placeholder="いま心にある問い" data-i18n-placeholder="form.question_placeholder"></textarea>
+            <textarea id="question" name="question" rows="3" maxlength="200" placeholder="いま心にある問い" data-i18n-placeholder="form.question_placeholder"></textarea>
           </label>
           <label id="birth-date-field" hidden>
             <span data-i18n="form.birth_date">生年月日</span>
@@ -55,7 +55,7 @@
           </label>
           <label id="full-name-field">
             <span id="full-name-label">氏名（任意）</span>
-            <input id="full-name" name="full_name" type="text" autocomplete="name">
+            <input id="full-name" name="full_name" type="text" maxlength="100" autocomplete="name">
           </label>
           <label id="spread-field" hidden>
             <span data-i18n="form.spread">スプレッド</span>
@@ -70,7 +70,7 @@
 
       <section id="view-history" data-view-panel hidden>
         <p class="eyebrow" data-i18n="history.eyebrow">Magi / Local History</p>
-        <h1 data-i18n="history.title">履歴</h1>
+        <h1 tabindex="-1" data-i18n="history.title">履歴</h1>
         <div class="button-row">
           <button id="export-history" type="button" data-i18n="history.export">エクスポート</button>
           <button id="clear-history" class="quiet-button" type="button" data-i18n="history.clear">全削除</button>
@@ -78,7 +78,7 @@
         <div id="history-list"></div>
       </section>
 
-      <section id="view-result" data-view-panel hidden>
+      <section id="view-result" data-view-panel hidden tabindex="-1">
         <div id="result"></div>
       </section>
     </main>

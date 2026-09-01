@@ -24,7 +24,7 @@ def test_engine_reading_schema(engine_id):
     reading = engine.cast(inp, SeededRandom(build_seed("shape", engine.id, inp)))
     assert reading.engine_id == engine.id
     assert reading.drawn
-    assert reading.score is not None and 0 <= reading.score <= 100
+    assert reading.score is None or 0 <= reading.score <= 100
     assert len(reading.sections) >= 3
 
 
