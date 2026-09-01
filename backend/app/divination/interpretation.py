@@ -25,6 +25,7 @@ TRANSLATABLE_KEYS_BY_ENGINE: dict[str, frozenset[str]] = {
 
 
 def interpretation_langs(engine_id: str) -> tuple[str, ...]:
+    """Empty keys mean the engine is fully catalog-driven."""
     keys = TRANSLATABLE_KEYS_BY_ENGINE[engine_id]
-    covered = bool(keys) and keys <= EN_TEXTS.get(engine_id, {}).keys()
+    covered = keys <= EN_TEXTS.get(engine_id, {}).keys()
     return ("ja", "en") if covered else ("ja",)

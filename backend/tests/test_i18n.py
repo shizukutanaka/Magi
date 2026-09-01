@@ -5,7 +5,6 @@ import pytest
 
 from app.divination.base import DivinationInput
 from app.divination.data.en import TEXTS as EN_TEXTS
-from app.divination.data.omikuji import CATEGORIES
 from app.divination.engines._common import first_sentence
 from app.divination.interpretation import (
     TRANSLATABLE_KEYS_BY_ENGINE,
@@ -99,12 +98,14 @@ def test_english_framing_does_not_leak_japanese_values():
         assert english.summary != japanese.summary
 
 
-def test_data_sourced_omikuji_content_remains_japanese_by_declaration():
+def test_omikuji_categories_are_localized_catalog_sections():
     japanese = cast("omikuji", "ja")
     english = cast("omikuji", "en")
-    assert [section.title for section in english.sections[1:]] == list(CATEGORIES[1:])
-    assert [section.title for section in english.sections[1:]] == [
-        section.title for section in japanese.sections[1:]
+    assert [section.title for section in english.sections] == [
+        t("en", f"section.omikuji.{index}") for index in range(7)
+    ]
+    assert [section.title for section in japanese.sections] != [
+        section.title for section in english.sections
     ]
     assert [section.body for section in english.sections] != [
         section.body for section in japanese.sections
@@ -137,7 +138,14 @@ def test_catalog_translation_falls_back_to_japanese_and_missing_keys_are_loud():
 
 
 def test_interpretation_translation_keys_are_covered_and_nonempty():
-    for engine_id in ("runes", "geomancy", "omikuji"):
+    for engine_id in (
+        "runes",
+        "geomancy",
+        "omikuji",
+        "astrology",
+        "bazi",
+        "mayan",
+    ):
         keys = TRANSLATABLE_KEYS_BY_ENGINE[engine_id]
         assert keys <= EN_TEXTS[engine_id].keys()
         assert all(EN_TEXTS[engine_id][key] for key in keys)
@@ -148,19 +156,42 @@ def test_interpretation_language_coverage():
     assert interpretation_langs("runes") == ("ja", "en")
     assert interpretation_langs("geomancy") == ("ja", "en")
     assert interpretation_langs("omikuji") == ("ja", "en")
+    assert interpretation_langs("astrology") == ("ja", "en")
+    assert interpretation_langs("bazi") == ("ja", "en")
+    assert interpretation_langs("mayan") == ("ja", "en")
+    assert interpretation_langs("numerology") == ("ja", "en")
     assert all(
         interpretation_langs(engine.id) == ("ja",)
         for engine in all_engines()
-        if engine.id not in {"runes", "geomancy", "omikuji"}
+        if engine.id in {"tarot", "iching"}
     )
 
 
 def test_english_data_casts_contain_no_cjk():
-    for engine_id in ("runes", "geomancy", "omikuji"):
+    for engine_id in (
+        "runes",
+        "geomancy",
+        "omikuji",
+        "astrology",
+        "bazi",
+        "mayan",
+        "numerology",
+    ):
         reading = cast(engine_id, "en")
         assert not CJK.search(reading.summary)
         assert all(not CJK.search(section.body) for section in reading.sections)
+        assert all(not CJK.search(section.title) for section in reading.sections)
         assert all(not CJK.search(symbol.name) for symbol in reading.drawn)
+
+
+def test_numerology_english_symbols_are_localized():
+    reading = cast("numerology", "en")
+    assert [symbol.name for symbol in reading.drawn] == [
+        "Life Path 22",
+        "Destiny Number 9",
+    ]
+    assert reading.interpretation_lang == "en"
+    assert all(not CJK.search(symbol.name) for symbol in reading.drawn)
 
 
 def test_omikuji_grade_key_is_language_invariant():

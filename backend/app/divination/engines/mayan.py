@@ -9,6 +9,7 @@ convention because this product does not use an ephemeris.
 from datetime import date
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
+from app.divination.data.localize import dt
 from app.divination.data.mayan import GALACTIC_TONES, SOLAR_SEALS
 from app.divination.engines._common import finish
 from app.divination.registry import register
@@ -36,22 +37,31 @@ class MayanEngine:
         if inp.birth_date is None:
             raise ValueError("birth_date is required")
         kin = ((_julian_day(inp.birth_date) - GMT_CORRELATION) % 260) + 1
-        seal = SOLAR_SEALS[(kin - 1) % 20]
-        tone = GALACTIC_TONES[(kin - 1) % 13]
+        seal_index = (kin - 1) % 20
+        tone_index = (kin - 1) % 13
+        seal = SOLAR_SEALS[seal_index]
+        tone = GALACTIC_TONES[tone_index]
+        localized_seal = dt(lang, self.id, f"solar_seal.{seal_index}", seal)
+        localized_tone = dt(lang, self.id, f"galactic_tone.{tone_index}", tone)
+        symbol = (
+            f"{tone}{seal}"
+            if lang == "ja"
+            else f"{localized_tone} {localized_seal}"
+        )
         drawn = [
             DrawnSymbol(
                 key=f"kin-{kin}",
-                name=f"{tone}{seal}",
+                name=symbol,
                 position=t(lang, "position.mayan.birth_kin"),
                 image_hint=f"mayan/kin-{kin}",
             )
         ]
         return finish(
             self.id, t(lang, "engine.mayan.name"), t(lang, "engine.mayan.tradition"), rng.seed, drawn,
-            t(lang, "summary.mayan", symbol=f"{tone}{seal}", kin=kin),
+            t(lang, "summary.mayan", symbol=symbol, kin=kin),
             [
-                ReadingSection(title=t(lang, "section.mayan.galactic_tone"), body=t(lang, "body.mayan.galactic_tone", tone=tone)),
-                ReadingSection(title=t(lang, "section.mayan.solar_seal"), body=t(lang, "body.mayan.solar_seal", seal=seal)),
+                ReadingSection(title=t(lang, "section.mayan.galactic_tone"), body=t(lang, "body.mayan.galactic_tone", tone=localized_tone)),
+                ReadingSection(title=t(lang, "section.mayan.solar_seal"), body=t(lang, "body.mayan.solar_seal", seal=localized_seal)),
                 ReadingSection(title=t(lang, "section.mayan.flow"), body=t(lang, "body.mayan.flow")),
                 ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.mayan.guidance")),
             ],
