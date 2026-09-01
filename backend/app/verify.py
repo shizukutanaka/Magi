@@ -42,9 +42,7 @@ def _input_from_query(params: dict[str, str]) -> DivinationInput:
 
 
 def _readings_from_result(result: dict | Reading) -> list[Reading]:
-    if isinstance(result, Reading):
-        return [result]
-    return result["readings"] if "readings" in result else [result["reading"]]
+    return [result] if isinstance(result, Reading) else result["readings"]
 
 
 def _print_reading(reading: Reading) -> None:
