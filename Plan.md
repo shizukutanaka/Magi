@@ -100,6 +100,39 @@
 テスト失敗として現れる。`interpretation_langs` も手書きの一覧ではなく
 この網羅率から導出するため、訳を足すだけでAPIの申告が変わる。
 
+**Q13. 問いを入力させて、解釈が問いに触れないのは許されるか？**
+許されない。問いはシードを変えるだけで、9流派どれも解釈が問いに言及していなかった。
+入力欄は「これを書けば結果が変わる」という約束であり、約束を守らない入力欄は
+削除するか、守らせるかのどちらかしかない。占いにおける問いは中核の入力なので
+削除せず、守らせる方を選ぶ。LLMは使わない（同じ問いが同じ結果を返さなくなり、
+再現性という中核価値が壊れ、鍵と課金と外部依存が連鎖的に戻ってくる）。
+代わりに問いをキーワード出現数で決定的に7領域（恋愛・仕事・金銭・健康・
+人間関係・決断・全般）へ分類し、その領域に向けたセクションを総合の直後に1つ挿入する。
+分類辞書は日英を同じ辞書に持つため、言語を変えても領域は変わらない。
+問いが空なら挿入しない（問いの無い鑑定の出力は従来と一字も変わらない）。
+
+**Q14. 使われていないフィールドを残しておく害はあるか？**
+ある。`birth_time` は入力欄を出しておきながらシードにもエンジンにも一切使われて
+いなかった。`image_hint` は全エンジンが返すのに画像は1枚も存在せずUIも読んでいなかった。
+前者は利用者に無意味な個人情報を入力させ、後者はAPI利用者に存在しない機能を約束する。
+最良の部品は存在しない部品なので両方削除した。画像を実装する日が来ても
+`engine_id` と `key` から経路は再構成できるので、情報は失われていない。
+
+**Q15. レートリミットは本当に機能していたか？**
+していなかった。`X-Forwarded-For` を無条件に信頼していたため、ヘッダを1リクエスト
+ごとに変えれば毎回別クライアントとして数えられた。「濫用防止のためにレートリミットだけは
+残す」という判断は、偽装できるキーで数えている限り自己満足である。信頼できるのは
+運用者が「この前段プロキシを信頼する」と明示した場合だけなので、`MAGI_TRUST_PROXY`
+が真のときだけヘッダを見る。Uvicorn自身も既定で `--proxy-headers` により
+`client.host` を書き換えるため、既定の起動コマンドでは `--no-proxy-headers` を指定し、
+信頼の判断をアプリ側の1つのスイッチに集約する。
+
+**Q16. 入力の長さに上限は必要か？**
+必要。保存もアカウントも無いので巨大な入力で「溜まる」ものは無いが、
+問いも氏名も無制限のまま受け取っていた。占いの問いは1〜2文で足りる
+（`question` 200字、`full_name` 100字、`subject_key` とオプションは64字）。
+上限はpydanticの型で表明し、超過は422として現れる。
+
 ---
 
 ## 2. 第一原理からの再構築
@@ -188,10 +221,9 @@ backend/app/
 ```python
 class DivinationInput(BaseModel):
     target_date: date                 # 占う対象日（既定=今日）
-    question: str | None = None
+    question: str | None = None       # 200字まで。シードに入り、領域分類にも使う
     birth_date: date | None = None
-    birth_time: time | None = None
-    full_name: str | None = None
+    full_name: str | None = None      # 100字まで
     options: dict[str, str] = {}      # spread など流派固有の指定
 
 class DrawnSymbol(BaseModel):
@@ -199,7 +231,6 @@ class DrawnSymbol(BaseModel):
     name: str
     position: str                     # "過去" / "上卦" など
     reversed: bool = False
-    image_hint: str | None = None
 
 class Reading(BaseModel):
     engine_id: str
@@ -208,7 +239,7 @@ class Reading(BaseModel):
     seed: str                         # 検証可能な形で必ず返す
     drawn: list[DrawnSymbol]
     summary: str
-    sections: list[ReadingSection]    # 総合／恋愛／仕事／金運／助言
+    sections: list[ReadingSection]    # 総合／問いについて／恋愛／仕事／金運／助言
     score: int | None                 # 0-100
     lucky: LuckyItems | None
     generated_at: datetime
@@ -232,7 +263,11 @@ class DivinationEngine(Protocol):
 | P2 | 静的フロントエンド（今日の三賢者・鑑定画面・履歴=localStorage・共有リンク） | 予定 |
 | P3 | 流派拡張（ホラリー占星術・易の変卦詳細・カバラ・ジオマンシー・西洋以外のスプレッド） | 一部完了（ジオマンシー） |
 | P4 | self-host 一式（Dockerfile・デプロイ手順）と結果の再現検証CLI | 完了 |
-| P5 | LLMによる解釈の言い換え（任意機能・自前APIキー持ち込み制・決定的キャッシュ） | 予定 |
+| P5 | 多言語対応（表示言語の機構と9流派すべての解釈本文の英訳） | 完了 |
+| P6 | 問いを解釈に反映する決定的な領域分類（Q13） | 完了 |
+
+**削除した計画**: LLMによる解釈の言い換え。問いへの応答は決定的な領域分類で足り、
+LLMを入れると同じ共有URLが同じ結果を返さなくなる（Q13）。
 
 **削除した計画**: 認証、PostgreSQL、Stripe課金、エンタイトルメント。
 無料化により不要になった（Q5・Q7）。最良の部品は存在しない部品である。

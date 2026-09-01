@@ -9,6 +9,8 @@
 - 生年月日・氏名・問いは鑑定計算にのみ使用し、サーバに保存せず、ログにも出力しません。
 - 濫用防止のため、鑑定APIにはIPアドレス単位のインメモリ・レートリミットだけを設けています。
 - レートリミットの既定値は1分あたり60リクエストです。`MAGI_RATE_LIMIT_PER_MINUTE` で変更でき、0以下にすると無効になります。
+- 前段プロキシの `X-Forwarded-For` は既定で信頼しません。信頼できるプロキシの背後で運用する場合のみ `MAGI_TRUST_PROXY=1` を設定してください。既定の起動コマンドでは Uvicorn の `--proxy-headers` も切っています。
+- 入力の長さには上限があります（問い200字・氏名100字・subject key とオプション64字）。超過時は 422 を返します。
 
 ## 技術スタック
 
@@ -44,7 +46,7 @@ cd backend
 uv venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --no-proxy-headers
 ```
 
 起動後は `GET /health`、`GET /api/v1/systems`、`POST /api/v1/readings`、
@@ -60,6 +62,14 @@ UIはHTML・CSS・ES Modulesだけで構成されており、ビルド工程、n
 
 履歴はブラウザのlocalStorageにのみ保存され、画面からJSONとしてエクスポートまたは全削除できます。
 サーバは履歴を含むリクエストデータを保存しません。
+
+### 問いは結果に反映されます
+
+問いを入力すると、その問いをキーワードから決定的に7領域（恋愛・仕事・金銭・健康・
+人間関係・決断・全般）へ分類し、「問いについて（領域）」というセクションを総合の
+直後に1つ追加します。分類はLLMを使わず入力だけから決まるため、同じ問いなら常に
+同じ領域になります。日本語と英語で同じ辞書を使うので、表示言語を変えても領域は
+変わりません。問いを空にした場合はこのセクションは追加されません。
 
 ### 多言語対応
 
@@ -85,7 +95,7 @@ APIレスポンスの `seed` は、subject key・占術ID・対象日・問い�
 ```bash
 cd backend
 source .venv/bin/activate
-uvicorn app.main:app --host 127.0.0.1 --port 8000
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
 ```
 
 ## self-host（Docker）
