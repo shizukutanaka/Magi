@@ -6,7 +6,7 @@ from app.divination.base import DivinationInput
 from app.divination.registry import get_engine
 from app.divination.seed import SeededRandom, build_seed
 
-ENGINE_IDS = ("tarot", "iching", "runes", "omikuji", "astrology", "numerology", "bazi", "mayan")
+ENGINE_IDS = ("tarot", "iching", "runes", "omikuji", "astrology", "numerology", "bazi", "mayan", "geomancy")
 
 
 def without_generated_at(reading):

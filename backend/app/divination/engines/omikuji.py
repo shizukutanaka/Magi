@@ -1,10 +1,12 @@
 """Weighted Japanese omikuji engine."""
 
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
-from app.divination.data.omikuji import CATEGORIES, GRADES
+from app.divination.data.localize import dt
+from app.divination.data.omikuji import GRADES
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 
 class OmikujiEngine:
@@ -14,16 +16,37 @@ class OmikujiEngine:
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
-        grade = rng.pick([grade for grade, weight, *_ in GRADES for _ in range(weight)])
-        row = next(row for row in GRADES if row[0] == grade)
-        advice = dict(zip(CATEGORIES, row[2:], strict=True))
-        drawn = [DrawnSymbol(key=grade.lower(), name=grade, position="本籤", image_hint=f"omikuji/{grade.lower()}")]
-        sections = [ReadingSection(title="総合", body=f"運勢は{grade}。{advice['願望']}")]
-        sections.extend(ReadingSection(title=title, body=text) for title, text in advice.items() if title != "願望")
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
+        grade_key = rng.pick([row[0] for row in GRADES for _ in range(row[2])])
+        row = next(row for row in GRADES if row[0] == grade_key)
+        _, grade, _, *japanese_advice = row
+        grade_name = dt(lang, self.id, f"{grade_key}.name", grade)
+        localized_advice = {
+            index: dt(lang, self.id, f"{grade_key}.category.{index}", text)
+            for index, text in enumerate(japanese_advice)
+        }
+        drawn = [DrawnSymbol(key=grade_key, name=grade_name, position=t(lang, "position.omikuji.drawn"))]
+        sections = [
+            ReadingSection(
+                title=t(lang, "section.overall"),
+                body=t(
+                    lang,
+                    "body.omikuji.overall",
+                    grade=grade_name,
+                    wish=localized_advice[0],
+                ),
+            )
+        ]
+        sections.extend(
+            ReadingSection(
+                title=t(lang, f"section.omikuji.{index}"),
+                body=localized_advice[index],
+            )
+            for index in range(1, len(japanese_advice))
+        )
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"{grade}。{advice['願望']}", sections, rng.randint(35, 98), rng,
+            self.id, t(lang, "engine.omikuji.name"), t(lang, "engine.omikuji.tradition"), rng.seed, drawn,
+            t(lang, "summary.omikuji", grade=grade_name, wish=localized_advice[0]), sections, rng.randint(35, 98), rng, lang,
         )
 
 

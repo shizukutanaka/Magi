@@ -12,6 +12,7 @@ from app.divination.data.numerology import LETTER_VALUES, MASTER_NUMBERS
 from app.divination.engines._common import finish
 from app.divination.registry import register
 from app.divination.seed import SeededRandom
+from app.i18n import Lang, t
 
 
 def _reduce(value: int) -> int:
@@ -41,7 +42,7 @@ class NumerologyEngine:
     required_fields = frozenset({"full_name", "birth_date"})
     default_options: dict[str, str] = {}
 
-    def cast(self, inp: DivinationInput, rng: SeededRandom):
+    def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.full_name is None or inp.birth_date is None:
             raise ValueError("full_name and birth_date are required")
         life_path = _life_path(inp.birth_date)
@@ -49,27 +50,25 @@ class NumerologyEngine:
         drawn = [
             DrawnSymbol(
                 key=str(life_path),
-                name=f"ライフパス {life_path}",
-                position="生年月日",
-                image_hint=f"numerology/{life_path}",
+                name=t(lang, "symbol.numerology.life_path", number=life_path),
+                position=t(lang, "position.numerology.birth_date"),
             ),
             DrawnSymbol(
                 key=str(destiny),
-                name=f"運命数 {destiny}",
-                position="氏名",
-                image_hint=f"numerology/{destiny}",
+                name=t(lang, "symbol.numerology.destiny", number=destiny),
+                position=t(lang, "position.numerology.name"),
             ),
         ]
         return finish(
-            self.id, self.name, self.tradition, rng.seed, drawn,
-            f"ライフパス{life_path}と運命数{destiny}が、あなたらしい選択の軸を示しています。",
+            self.id, t(lang, "engine.numerology.name"), t(lang, "engine.numerology.tradition"), rng.seed, drawn,
+            t(lang, "summary.numerology", life_path=life_path, destiny=destiny),
             [
-                ReadingSection(title="ライフパス", body=f"生年月日から導く{life_path}は、経験を通じて育つ人生のテーマです。"),
-                ReadingSection(title="運命数", body=f"氏名から導く{destiny}は、周囲に届ける才能と役割を表します。"),
-                ReadingSection(title="活かし方", body="数字の意味を決めつけず、得意な行動として日常に小さく取り入れましょう。"),
-                ReadingSection(title="助言", body="マスターナンバーを持つ場合も、理想と現実の両方に足場を置くことが大切です。"),
+                ReadingSection(title=t(lang, "section.numerology.life_path"), body=t(lang, "body.numerology.life_path", life_path=life_path)),
+                ReadingSection(title=t(lang, "section.numerology.destiny"), body=t(lang, "body.numerology.destiny", destiny=destiny)),
+                ReadingSection(title=t(lang, "section.numerology.practice"), body=t(lang, "body.numerology.practice")),
+                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.numerology.guidance")),
             ],
-            rng.randint(40, 96), rng,
+            rng.randint(40, 96), rng, lang,
         )
 
 

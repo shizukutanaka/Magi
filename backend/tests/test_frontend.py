@@ -21,6 +21,7 @@ def test_static_assets_are_served():
         ("/app.js", "javascript"),
         ("/api.js", "javascript"),
         ("/store.js", "javascript"),
+        ("/i18n.js", "javascript"),
         ("/styles.css", "text/css"),
     ):
         response = client.get(path)

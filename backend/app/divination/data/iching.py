@@ -83,3 +83,9 @@ CARDS: tuple[Hexagram, ...] = tuple(
     Hexagram(number, name, reading, judgment, interpretation)
     for number, (name, reading, judgment, interpretation) in enumerate(_ROWS, 1)
 )
+
+TRANSLATABLE_KEYS: frozenset[str] = frozenset(
+    f"hex-{card.number:02d}.{field}"
+    for card in CARDS
+    for field in ("name", "judgment", "interpretation")
+)
