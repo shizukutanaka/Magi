@@ -40,24 +40,40 @@ class TarotEngine:
                     position=position,
                     reversed=reversed_card,
                 )
-            )
+        )
         lead = cards[0]
-        meaning_key = "reversed_meaning" if drawn[0].reversed else "upright_meaning"
-        meaning_source = (
+        lead_meaning_key = "reversed_meaning" if drawn[0].reversed else "upright_meaning"
+        lead_meaning_source = (
             lead.reversed_meaning if drawn[0].reversed else lead.upright_meaning
         )
-        meaning = dt(lang, self.id, f"{lead.key}.{meaning_key}", meaning_source)
+        lead_meaning = dt(
+            lang,
+            self.id,
+            f"{lead.key}.{lead_meaning_key}",
+            lead_meaning_source,
+        )
         lead_name = dt(lang, self.id, f"{lead.key}.name", lead.name_ja)
+        sections = [
+            ReadingSection(
+                title=symbol.position,
+                body=dt(
+                    lang,
+                    self.id,
+                    f"{card.key}.reversed_meaning"
+                    if symbol.reversed
+                    else f"{card.key}.upright_meaning",
+                    card.reversed_meaning if symbol.reversed else card.upright_meaning,
+                ),
+            )
+            for card, symbol in zip(cards, drawn, strict=True)
+        ]
+        sections.append(
+            ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.tarot.guidance"))
+        )
         return finish(
             self.id, t(lang, "engine.tarot.name"), t(lang, "engine.tarot.tradition"), rng.seed, drawn,
-            t(lang, "summary.tarot", name=lead_name, meaning=first_sentence(meaning)),
-            [
-                ReadingSection(title=t(lang, "section.overall"), body=meaning),
-                ReadingSection(title=t(lang, "section.love"), body=t(lang, "body.tarot.love")),
-                ReadingSection(title=t(lang, "section.work"), body=t(lang, "body.tarot.work")),
-                ReadingSection(title=t(lang, "section.finance"), body=t(lang, "body.tarot.finance")),
-                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.tarot.guidance")),
-            ],
+            t(lang, "summary.tarot", name=lead_name, meaning=first_sentence(lead_meaning)),
+            sections,
             None, rng, lang,
         )
 

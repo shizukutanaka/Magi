@@ -37,15 +37,27 @@ class RunesEngine:
             f"{first.key}.reversed_meaning" if drawn[0].reversed else f"{first.key}.meaning",
             first_meaning,
         )
+        sections = [
+            ReadingSection(
+                title=symbol.position,
+                body=dt(
+                    lang,
+                    self.id,
+                    f"{rune.key}.reversed_meaning"
+                    if symbol.reversed
+                    else f"{rune.key}.meaning",
+                    rune.reversed_meaning if symbol.reversed else rune.meaning,
+                ),
+            )
+            for rune, symbol in zip(runes, drawn, strict=True)
+        ]
+        sections.append(
+            ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.runes.guidance"))
+        )
         return finish(
             self.id, t(lang, "engine.runes.name"), t(lang, "engine.runes.tradition"), rng.seed, drawn,
             t(lang, "summary.runes", name=drawn[0].name, meaning=first_meaning),
-            [
-                ReadingSection(title=t(lang, "section.overall"), body=first_meaning),
-                ReadingSection(title=t(lang, "section.runes_flow"), body=t(lang, "body.runes.flow")),
-                ReadingSection(title=t(lang, "section.relationship"), body=t(lang, "body.runes.relationship")),
-                ReadingSection(title=t(lang, "section.guidance"), body=t(lang, "body.runes.guidance")),
-            ],
+            sections,
             None, rng, lang,
         )
 
