@@ -83,7 +83,10 @@ class GeomancyEngine:
             f"{judge.name}が示す「{judge.judgment}」を、今回の中心的な手がかりとします。",
             [
                 ReadingSection(title="総合", body=judge.judgment),
-                ReadingSection(title="経緯", body=f"{right.witness}そして{left.witness}"),
+                ReadingSection(
+                    title="経緯",
+                    body=f"はじめに{right.name}。{right.witness}続いて{left.name}。{left.witness}",
+                ),
                 ReadingSection(title="実践", body=judge.practice),
                 ReadingSection(
                     title="助言",
