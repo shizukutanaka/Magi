@@ -5,6 +5,7 @@ import { addHistory, clearHistory, exportHistory, getSubjectKey, loadHistory } f
 const state = {
   systems: [],
   activeSubjectKey: null,
+  activeReadingSubject: null,
   activeInput: null,
   activeReadings: [],
   activeDaily: false,
@@ -245,6 +246,7 @@ function renderResults(readings, input, subjectKey, { overview, score, daily = f
   state.activeReadings = readings;
   state.activeInput = input;
   state.activeDaily = daily;
+  state.activeReadingSubject = subjectKey;
   showView("result", { focus: true });
 }
 
@@ -343,10 +345,10 @@ async function changeLanguage(lang) {
         question: state.activeInput.question,
         birth_date: state.activeInput.birth_date,
         full_name: state.activeInput.full_name,
-        subjectKey: state.activeSubjectKey,
+        subjectKey: state.activeReadingSubject || state.activeSubjectKey,
       });
     } else {
-      await runReading(state.activeInput, previousEngine, state.activeSubjectKey);
+      await runReading(state.activeInput, previousEngine, state.activeReadingSubject || state.activeSubjectKey);
     }
   }
 }
