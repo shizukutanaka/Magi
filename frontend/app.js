@@ -57,7 +57,7 @@ function updateFields() {
 function updateLabel(selector, text) {
   const label = document.querySelector(selector);
   const textNode = [...label.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
-  if (textNode) textNode.nodeValue = `\n            ${text}\n            `;
+  if (textNode) textNode.nodeValue = text;
 }
 
 function populateSystems() {
@@ -210,13 +210,13 @@ function renderReading(reading, input, subjectKey) {
   return card;
 }
 
-function renderResults(readings, input, subjectKey, overview, score) {
+function renderResults(readings, input, subjectKey, { overview, score, daily = false } = {}) {
   const result = document.querySelector("#result");
   result.replaceChildren();
   result.append(element("p", "Magi / Result", "eyebrow"), element("h1", "鑑定結果"));
   if (overview) result.append(element("p", overview, "lead"));
   if (score !== undefined && score !== null) result.append(textWithLabel("平均スコア", score));
-  if (readings.length === 3) {
+  if (daily) {
     const dailyShare = element("button", "この三賢者の共有リンクをコピー");
     dailyShare.type = "button";
     dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectKey), dailyShare));
@@ -244,7 +244,11 @@ async function runDaily(params = {}) {
   try {
     const subjectKey = params.subjectKey || state.activeSubjectKey;
     const response = await dailyReading({ ...input, subject_key: subjectKey });
-    renderResults(response.readings, input, subjectKey, response.overview, response.score);
+    renderResults(response.readings, input, subjectKey, {
+      overview: response.overview,
+      score: response.score,
+      daily: true,
+    });
     setStatus("");
   } catch (error) {
     setStatus(error.message || "通信に失敗しました。");
@@ -255,7 +259,7 @@ async function runReading(input = inputFromForm(), engineId = engineSelect.value
   setStatus("鑑定しています…");
   try {
     const reading = await createReading({ engine_id: engineId, input, subject_key: subjectKey });
-    renderResults([reading], input, subjectKey);
+    renderResults([reading], input, subjectKey, {});
     setStatus("");
   } catch (error) {
     setStatus(error.message || "通信に失敗しました。");
