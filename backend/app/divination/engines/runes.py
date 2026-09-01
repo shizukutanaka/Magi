@@ -1,6 +1,5 @@
 """Elder Futhark three-rune engine."""
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.runes import RUNES
 from app.divination.engines._common import finish
@@ -13,7 +12,6 @@ class RunesEngine:
     name = "ルーン"
     tradition = "北欧"
     required_fields = frozenset()
-    min_tier = Tier.PLUS
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         runes = rng.sample(RUNES, 3)

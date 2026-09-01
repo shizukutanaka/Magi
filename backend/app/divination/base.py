@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Protocol
 
 from pydantic import BaseModel, Field
 
-from app.core.entitlement import Tier
-
 if TYPE_CHECKING:
     from app.divination.seed import SeededRandom
 
@@ -61,7 +59,6 @@ class DivinationEngine(Protocol):
     name: str
     tradition: str
     required_fields: frozenset[str]
-    min_tier: Tier
 
     def cast(self, inp: DivinationInput, rng: "SeededRandom") -> Reading:
         """Return a deterministic reading for the supplied seeded random source."""

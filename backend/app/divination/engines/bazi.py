@@ -2,7 +2,6 @@
 
 from datetime import date
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.bazi import ANIMALS, BRANCHES, COMPATIBILITY, ELEMENTS, STEMS
 from app.divination.engines._common import finish
@@ -24,7 +23,6 @@ class BaziEngine:
     name = "干支・四柱推命（略式）"
     tradition = "中国"
     required_fields = frozenset({"birth_date"})
-    min_tier = Tier.PLUS
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         if inp.birth_date is None:

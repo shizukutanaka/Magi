@@ -1,6 +1,5 @@
 """Six-coin I Ching engine."""
 
-from app.core.entitlement import Tier
 from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
 from app.divination.data.iching import CARDS
 from app.divination.engines._common import finish
@@ -13,7 +12,6 @@ class IChingEngine:
     name = "易経（周易）"
     tradition = "中国"
     required_fields = frozenset()
-    min_tier = Tier.FREE
 
     def cast(self, inp: DivinationInput, rng: SeededRandom):
         lines = [sum(rng.randint(2, 3) for _ in range(3)) for _ in range(6)]
