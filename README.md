@@ -128,6 +128,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
 ```
 
 `MAGI_STATIC_DIR` を設定すると、フロントエンドを配信するディレクトリを差し替えられます（既定はリポジトリの `frontend/`、Dockerイメージでは `/app/frontend`）。明示的に指定したディレクトリが存在しない場合は設定エラーを出して起動を停止します。既定の `frontend/` が見つからない場合だけ、静的配信をマウントせずAPI-onlyで起動します。
+起動時には、読み込んだ実効設定をINFOレベルで1行ログに出します。外部でlogging設定が無い場合はMagiがstderrへINFOハンドラを自前で追加し、既存のlogging設定がある場合はそれを上書きしません。
 
 ## self-host（Docker）
 
