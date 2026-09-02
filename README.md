@@ -141,6 +141,17 @@ docker run --rm -p 8000:8000 magi
 起動後に <http://localhost:8000/> を開いてください。データベースや別の
 バッキングサービスは必要ありません。
 
+## セキュリティヘッダ
+
+Magiは静的ファイルだけでなくAPIとエラーレスポンスにも、
+`Content-Security-Policy`、`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、
+`Referrer-Policy: no-referrer` を付けます。CSPの `default-src 'self'` により、
+アプリは第三者のリソースを読み込まないため、外向きのネットワーク接続なしで動作します。
+
+Swagger UIをCDNから読み込むインタラクティブな `/docs` と `/redoc` は無効にしています。
+OpenAPIスキーマは `/openapi.json` で取得できるため、必要な場合はローカルのビューアで
+表示できます。
+
 ## 鑑定を検証する
 
 共有URLを受け取った人は、サーバ・ネットワーク・アカウントなしで、同じ鑑定を
