@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -5,7 +6,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import app.main as main
-from app.main import ConfigError, app, mount_frontend
+from app.core.config import ConfigError
+from app.main import app, mount_frontend
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
@@ -73,7 +75,7 @@ def test_missing_explicit_static_directory_fails(monkeypatch):
     def health():
         return {"status": "ok"}
 
-    with pytest.raises(ConfigError, match=missing):
+    with pytest.raises(ConfigError, match=re.escape(missing)):
         mount_frontend(application)
 
 
