@@ -71,22 +71,26 @@ def mount_frontend(application: FastAPI) -> None:
         static_dir = Path(configured_dir).expanduser().resolve()
         if not static_dir.is_dir():
             raise ConfigError(f"MAGI_STATIC_DIR で指定されたディレクトリが存在しません: {static_dir}")
+        will_mount = True
     else:
         static_dir = DEFAULT_STATIC_DIR
-        if not static_dir.is_dir():
-            logger.warning(
-                "フロントエンドディレクトリ %s が見つからないため、API-onlyで起動します",
-                static_dir,
-            )
-            return
+        will_mount = static_dir.is_dir()
 
-    application.mount("/", NoCacheStaticFiles(directory=static_dir, html=True), name="frontend")
     logger.info(
-        "Magi configuration: rate_limit_per_minute=%d, trust_proxy_headers=%s, static_dir=%s",
+        "Magi configuration: rate_limit_per_minute=%d, trust_proxy_headers=%s, static_dir=%s (%s)",
         get_rate_limit_per_minute(),
         get_trust_proxy_headers(),
         static_dir,
+        "mounted" if will_mount else "api-only",
     )
+    if not will_mount:
+        logger.warning(
+            "フロントエンドディレクトリ %s が見つからないため、API-onlyで起動します",
+            static_dir,
+        )
+        return
+
+    application.mount("/", NoCacheStaticFiles(directory=static_dir, html=True), name="frontend")
 
 
 @app.get("/health")
