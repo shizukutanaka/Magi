@@ -29,10 +29,26 @@ def test_static_assets_are_served():
         assert content_type in response.headers["content-type"]
 
 
+def test_static_files_revalidate_without_disabling_storage():
+    client = TestClient(app)
+
+    for path in ("/", "/app.js"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-cache"
+
+    response = client.get("/app.js")
+    conditional = client.get("/app.js", headers={"If-None-Match": response.headers["etag"]})
+    assert conditional.status_code == 304
+    assert conditional.headers["cache-control"] == "no-cache"
+
+
 def test_api_routes_are_not_shadowed_by_frontend():
     client = TestClient(app)
     assert client.get("/health").status_code == 200
-    assert client.get("/api/v1/systems").status_code == 200
+    systems = client.get("/api/v1/systems")
+    assert systems.status_code == 200
+    assert systems.headers.get("cache-control") is None
 
 
 def test_unknown_frontend_path_returns_404():
