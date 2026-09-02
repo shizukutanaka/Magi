@@ -41,7 +41,7 @@ def _localized_pillar(
 class BaziEngine:
     id = "bazi"
     name = "干支・四柱推命（略式）"
-    tradition = "中国"
+    culture = "chinese"
     required_fields = frozenset({"birth_date"})
     default_options: dict[str, str] = {}
 

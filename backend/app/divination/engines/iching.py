@@ -17,7 +17,7 @@ def _hexagram_number(lines: list[int]) -> int:
 class IChingEngine:
     id = "iching"
     name = "易経（周易）"
-    tradition = "中国"
+    culture = "chinese"
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 

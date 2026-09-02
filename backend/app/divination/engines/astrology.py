@@ -23,7 +23,7 @@ def sun_sign(birth_date: date) -> int:
 class AstrologyEngine:
     id = "astrology"
     name = "西洋占星術"
-    tradition = "西洋"
+    culture = "western"
     required_fields = frozenset({"birth_date"})
     default_options: dict[str, str] = {}
 

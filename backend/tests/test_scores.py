@@ -37,7 +37,7 @@ def test_omikuji_grade_scores_are_fixed_and_ordered():
 def test_daily_reading_without_ranked_engines_has_no_average_score():
     result = daily_reading(
         DivinationInput(target_date=date(2026, 1, 3)),
-        "scoreless",
+        "no-score-14",
     )
     assert result["readings"]
     assert all(reading.engine_id not in {"omikuji", "geomancy"} for reading in result["readings"])

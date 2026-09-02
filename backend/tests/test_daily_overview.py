@@ -20,7 +20,7 @@ def test_daily_overview_pairs_each_tradition_with_its_leading_symbol():
     result = daily_reading(inp, "geomancy-tarot-mayan", "ja")
     readings = result["readings"]
 
-    assert [reading.engine_id for reading in readings] == ["tarot", "mayan", "geomancy"]
+    assert [reading.engine_id for reading in readings] == ["tarot", "geomancy", "mayan"]
     assert len({len(reading.drawn) for reading in readings}) > 1
     assert all(
         f"{reading.engine_name}の{reading.drawn[0].name}" in result["overview"]

@@ -39,7 +39,7 @@ def _life_path(birth_date) -> int:
 class NumerologyEngine:
     id = "numerology"
     name = "数秘術"
-    tradition = "西洋（ピタゴラス）"
+    culture = "western"
     required_fields = frozenset({"full_name", "birth_date"})
     default_options: dict[str, str] = {}
 
