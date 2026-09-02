@@ -30,3 +30,6 @@ jobs:
       - name: Verify a shared reading offline
         working-directory: backend
         run: python -m app.verify 'engine=tarot&date=2026-09-01&s=demo'
+      - name: Test frontend store
+        working-directory: frontend
+        run: node tests/store.test.mjs
