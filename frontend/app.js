@@ -1,10 +1,9 @@
 import { createReading, dailyReading, fetchSystems } from "./api.js";
 import { currentLanguage, resolveBrowserLanguage, setLanguage, setPageTitle, translate } from "./i18n.js";
-import { addHistory, clearHistory, exportHistory, getSubjectKey, loadHistory } from "./store.js";
+import { addHistory, clearHistory, deriveSubjectToken, exportHistory, loadHistory } from "./store.js";
 
 const state = {
   systems: [],
-  activeSubjectKey: null,
   activeReadingSubject: null,
   activeInput: null,
   activeReadings: [],
@@ -110,7 +109,7 @@ function fillForm(params) {
   updateFields();
 }
 
-function queryForReading(engineId, input, subjectKey, lang = state.lang) {
+function queryForReading(engineId, input, subjectToken, lang = state.lang) {
   const params = new URLSearchParams();
   params.set("engine", engineId);
   params.set("date", input.target_date);
@@ -118,19 +117,19 @@ function queryForReading(engineId, input, subjectKey, lang = state.lang) {
   if (input.birth_date) params.set("birth", input.birth_date);
   if (input.full_name) params.set("name", input.full_name);
   if (input.options?.spread) params.set("spread", input.options.spread);
-  params.set("s", subjectKey);
+  params.set("s", subjectToken);
   params.set("lang", lang);
   return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
 
-function queryForDaily(input, subjectKey, lang = state.lang) {
+function queryForDaily(input, subjectToken, lang = state.lang) {
   const params = new URLSearchParams();
   params.set("daily", "1");
   params.set("date", input.target_date);
   if (input.question) params.set("q", input.question);
   if (input.birth_date) params.set("birth", input.birth_date);
   if (input.full_name) params.set("name", input.full_name);
-  params.set("s", subjectKey);
+  params.set("s", subjectToken);
   params.set("lang", lang);
   return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
@@ -154,8 +153,8 @@ async function copyValue(value, button) {
   }
 }
 
-function saveReading(reading, input, subjectKey) {
-  const url = queryForReading(reading.engine_id, input, subjectKey);
+function saveReading(reading, input, subjectToken) {
+  const url = queryForReading(reading.engine_id, input, subjectToken);
   const saved = addHistory({
     engine_id: reading.engine_id,
     engine_name: reading.engine_name,
@@ -177,7 +176,7 @@ function formatTimestamp(value) {
   return `${parsed.getFullYear()}/${pad(parsed.getMonth() + 1)}/${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
-function renderReading(reading, input, subjectKey) {
+function renderReading(reading, input, subjectToken) {
   const card = element("article", undefined, "reading-card");
   const heading = element("h2", reading.engine_name);
   card.append(heading, element("p", reading.tradition, "tradition"), textWithLabel(translate("result.summary"), reading.summary));
@@ -207,7 +206,7 @@ function renderReading(reading, input, subjectKey) {
     );
     card.append(lucky);
   }
-  const url = queryForReading(reading.engine_id, input, subjectKey);
+  const url = queryForReading(reading.engine_id, input, subjectToken);
   const seedBox = element("div", undefined, "seed-box");
   seedBox.append(
     element("span", translate("result.reproducibility")),
@@ -226,7 +225,7 @@ function renderReading(reading, input, subjectKey) {
   return card;
 }
 
-function renderResults(readings, input, subjectKey, { overview, score, daily = false } = {}) {
+function renderResults(readings, input, subjectToken, { overview, score, daily = false } = {}) {
   const result = document.querySelector("#result");
   result.replaceChildren();
   result.append(element("p", translate("result.eyebrow"), "eyebrow"), element("h1", translate("result.title")));
@@ -235,19 +234,19 @@ function renderResults(readings, input, subjectKey, { overview, score, daily = f
   if (daily) {
     const dailyShare = element("button", translate("result.copy_daily"));
     dailyShare.type = "button";
-    dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectKey), dailyShare));
+    dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectToken), dailyShare));
     result.append(dailyShare);
   }
   let historyFailed = false;
   readings.forEach((reading) => {
-    if (!saveReading(reading, input, subjectKey).saved) historyFailed = true;
-    result.append(renderReading(reading, input, subjectKey));
+    if (!saveReading(reading, input, subjectToken).saved) historyFailed = true;
+    result.append(renderReading(reading, input, subjectToken));
   });
   if (historyFailed) setStatus(translate("status.history_unavailable"));
   state.activeReadings = readings;
   state.activeInput = input;
   state.activeDaily = daily;
-  state.activeReadingSubject = subjectKey;
+  state.activeReadingSubject = subjectToken;
   showView("result", { focus: true });
 }
 
@@ -261,10 +260,12 @@ async function runDaily(params = {}) {
     options: {},
   };
   try {
-    const subjectKey = params.subjectKey || state.activeSubjectKey;
-    const response = await dailyReading({ ...input, subject_key: subjectKey, lang: state.lang });
+    const subjectToken = params.subjectToken === undefined
+      ? deriveSubjectToken("daily", input)
+      : params.subjectToken;
+    const response = await dailyReading({ ...input, subject_key: subjectToken, lang: state.lang });
     setStatus("");
-    renderResults(response.readings, input, subjectKey, {
+    renderResults(response.readings, input, subjectToken, {
       overview: response.overview,
       score: response.score,
       daily: true,
@@ -274,12 +275,13 @@ async function runDaily(params = {}) {
   }
 }
 
-async function runReading(input = inputFromForm(), engineId = engineSelect.value, subjectKey = state.activeSubjectKey) {
+async function runReading(input = inputFromForm(), engineId = engineSelect.value, subjectToken) {
   setStatus(translate("status.reading"));
   try {
-    const reading = await createReading({ engine_id: engineId, input, subject_key: subjectKey, lang: state.lang });
+    const token = subjectToken === undefined ? deriveSubjectToken(engineId, input) : subjectToken;
+    const reading = await createReading({ engine_id: engineId, input, subject_key: token, lang: state.lang });
     setStatus("");
-    renderResults([reading], input, subjectKey, {});
+    renderResults([reading], input, token, {});
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   }
@@ -346,10 +348,10 @@ async function changeLanguage(lang) {
         question: state.activeInput.question,
         birth_date: state.activeInput.birth_date,
         full_name: state.activeInput.full_name,
-        subjectKey: state.activeReadingSubject || state.activeSubjectKey,
+        subjectToken: state.activeReadingSubject,
       });
     } else {
-      await runReading(state.activeInput, previousEngine, state.activeReadingSubject || state.activeSubjectKey);
+      await runReading(state.activeInput, previousEngine, state.activeReadingSubject);
     }
   }
 }
@@ -358,7 +360,6 @@ async function init() {
   state.lang = resolveBrowserLanguage();
   setLanguage(state.lang);
   document.querySelector("#language-select").value = state.lang;
-  state.activeSubjectKey = getSubjectKey();
   document.querySelector("#target-date").value = today();
   setupEvents();
   showView("landing");
@@ -368,14 +369,14 @@ async function init() {
     const params = readUrl();
     if (params.get("engine") || params.get("daily") === "1") {
       fillForm(params);
-      const deepLinkSubject = params.get("s") || state.activeSubjectKey;
+      const deepLinkSubject = params.has("s") ? params.get("s") : undefined;
       if (params.get("daily") === "1") {
         await runDaily({
           date: params.get("date") || today(),
           question: params.get("q"),
           birth_date: params.get("birth"),
           full_name: params.get("name"),
-          subjectKey: deepLinkSubject,
+          subjectToken: deepLinkSubject,
         });
       } else {
         await runReading(inputFromForm(), params.get("engine"), deepLinkSubject);
