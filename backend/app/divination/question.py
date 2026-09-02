@@ -131,15 +131,12 @@ KEYWORDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
-_ASCII_PATTERNS: dict[str, tuple[tuple[str, re.Pattern[str]], ...]] = {
-    topic: tuple(
-        (
-            keyword,
-            re.compile(r"(?<![a-z0-9])" + re.escape(keyword)),
-        )
+_ASCII_PATTERNS: dict[str, dict[str, re.Pattern[str]]] = {
+    topic: {
+        keyword: re.compile(r"(?<![a-z0-9])" + re.escape(keyword))
         for keyword in keywords
         if keyword.isascii()
-    )
+    }
     for topic, keywords in KEYWORDS.items()
 }
 
@@ -156,7 +153,7 @@ def classify_question(question: str | None) -> str | None:
             continue
         count = 0
         earliest = len(normalized)
-        ascii_patterns = dict(_ASCII_PATTERNS[topic])
+        ascii_patterns = _ASCII_PATTERNS[topic]
         for keyword in KEYWORDS[topic]:
             pattern = ascii_patterns.get(keyword)
             if pattern is not None:
