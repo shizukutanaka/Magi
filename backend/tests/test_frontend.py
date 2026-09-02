@@ -43,6 +43,12 @@ def test_static_files_revalidate_without_disabling_storage():
     assert conditional.headers["cache-control"] == "no-cache"
 
 
+def test_static_files_prevent_referrer_leaks():
+    response = TestClient(app).get("/")
+    assert response.status_code == 200
+    assert response.headers["referrer-policy"] == "no-referrer"
+
+
 def test_api_routes_are_not_shadowed_by_frontend():
     client = TestClient(app)
     assert client.get("/health").status_code == 200

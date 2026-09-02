@@ -27,6 +27,7 @@ class NoCacheStaticFiles(StaticFiles):
     ) -> Response:
         response = super().file_response(full_path, stat_result, scope, status_code)
         response.headers["Cache-Control"] = "no-cache"
+        response.headers["Referrer-Policy"] = "no-referrer"
         return response
 
 
