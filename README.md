@@ -173,7 +173,7 @@ mkdir -p .github/workflows
 cp ci/backend-ci.yml .github/workflows/backend-ci.yml
 ```
 
-このワークフローは push / pull_request で Ruff・pytest と、共有URLのオフライン検証CLIを実行します。
+このワークフローは push / pull_request で Ruff・pytest・共有URLのオフライン検証CLI・フロントの翻訳網羅テストを実行します。
 
 ## 免責
 

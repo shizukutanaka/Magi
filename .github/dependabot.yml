@@ -4,15 +4,11 @@ updates:
     directory: "/"
     allow:
       - dependency-type: "direct"
-    automerge:
-      - dependency-type: "direct"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
     directory: "/backend"
     allow:
-      - dependency-type: "direct"
-    automerge:
       - dependency-type: "direct"
     schedule:
       interval: "weekly"

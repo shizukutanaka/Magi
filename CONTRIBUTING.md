@@ -2,13 +2,13 @@
 
 ## 開発環境
 
-バックエンドの仮想環境を作成し、依存関係をインストールして起動します。
+バックエンドの仮想環境を作成し、依存関係をインストールして起動します。フロントエンドのチェックにはNode.jsも必要です。
 
 ```bash
 cd backend
 uv venv
 source .venv/bin/activate
-pip install -r requirements.txt pytest httpx ruff
+uv pip install -r requirements.txt pytest httpx ruff
 uvicorn app.main:app --reload --no-proxy-headers
 ```
 
@@ -39,5 +39,15 @@ source .venv/bin/activate
 python -m ruff check app tests
 python -m pytest -q
 ```
+
+フロントエンドのチェックも実行します。これは `ci/backend-ci.yml` が実行するチェックと同じです。
+
+```bash
+cd frontend
+node --check app.js && node --check i18n.js
+node tests/i18n.test.mjs
+```
+
+ワークフローは管理者が `.github/workflows/` にコピーした場合にのみ実行されます。
 
 秘密情報や `.env` をコミットしないでください。詳細は `SECURITY.md` を参照してください。
