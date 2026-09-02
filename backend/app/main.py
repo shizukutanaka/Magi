@@ -1,5 +1,6 @@
 """Magi FastAPI application."""
 
+import logging
 import os
 from collections.abc import Awaitable, Callable
 from pathlib import Path
@@ -10,7 +11,16 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from app.api.v1.router import router
+from app.core.config import (
+    ConfigError,
+    get_rate_limit_per_minute,
+    get_trust_proxy_headers,
+    validate_environment,
+)
 from app.divination import engines as _engines  # noqa: F401
+
+logger = logging.getLogger(__name__)
+DEFAULT_STATIC_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'none'; object-src 'none'; "
@@ -55,9 +65,32 @@ class NoCacheStaticFiles(StaticFiles):
 
 
 def mount_frontend(application: FastAPI) -> None:
-    static_dir = Path(os.getenv("MAGI_STATIC_DIR") or Path(__file__).resolve().parents[2] / "frontend")
-    if static_dir.is_dir():
-        application.mount("/", NoCacheStaticFiles(directory=static_dir, html=True), name="frontend")
+    configured_dir = os.getenv("MAGI_STATIC_DIR")
+    configured_dir = configured_dir.strip() if configured_dir is not None else None
+    if configured_dir:
+        static_dir = Path(configured_dir).expanduser().resolve()
+        if not static_dir.is_dir():
+            raise ConfigError(f"MAGI_STATIC_DIR で指定されたディレクトリが存在しません: {static_dir}")
+        will_mount = True
+    else:
+        static_dir = DEFAULT_STATIC_DIR
+        will_mount = static_dir.is_dir()
+
+    logger.info(
+        "Magi configuration: rate_limit_per_minute=%d, trust_proxy_headers=%s, static_dir=%s (%s)",
+        get_rate_limit_per_minute(),
+        get_trust_proxy_headers(),
+        static_dir,
+        "mounted" if will_mount else "api-only",
+    )
+    if not will_mount:
+        logger.warning(
+            "フロントエンドディレクトリ %s が見つからないため、API-onlyで起動します",
+            static_dir,
+        )
+        return
+
+    application.mount("/", NoCacheStaticFiles(directory=static_dir, html=True), name="frontend")
 
 
 @app.get("/health")
@@ -65,4 +98,5 @@ def health():
     return {"status": "ok"}
 
 
+validate_environment()
 mount_frontend(app)
