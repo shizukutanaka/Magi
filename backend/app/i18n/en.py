@@ -167,7 +167,7 @@ MESSAGES = {
     "body.astrology.weekday_ruler": "Borrow the strength symbolized by {ruler} and complete one top priority today.",
     "body.astrology.guidance": "Receive the stars not as a verdict, but as a perspective for looking back at yourself.",
     "body.numerology.practice": "Do not turn a number into a verdict; bring its strengths into daily life as a small, useful action.",
-    "body.numerology.guidance": "Even with a master number, keep one foot in ideals and the other in practical reality.",
+    "body.numerology.guidance": "A master number points to high ideals. Keep one foot in your ideals and the other in practical reality, and break the work into sizes you can actually carry out.",
     "body.numerology.guidance_plain": "Do not treat a number as a fixed personality verdict; use it to reflect on your tendencies and choose your next step.",
     "symbol.numerology.life_path": "Life Path {number}",
     "symbol.numerology.destiny": "Destiny Number {number}",

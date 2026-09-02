@@ -167,7 +167,7 @@ MESSAGES = {
     "body.astrology.weekday_ruler": "{ruler}の象徴が示す力を借り、今日の最優先事項を一つ実行しましょう。",
     "body.astrology.guidance": "星の配置を決定としてではなく、自分を振り返る視点として受け取りましょう。",
     "body.numerology.practice": "数字の意味を決めつけず、得意な行動として日常に小さく取り入れましょう。",
-    "body.numerology.guidance": "マスターナンバーを持つ場合も、理想と現実の両方に足場を置くことが大切です。",
+    "body.numerology.guidance": "マスターナンバーは理想の高さを示す数です。理想と現実の両方に足場を置き、実行できる大きさに区切って進めましょう。",
     "body.numerology.guidance_plain": "数字を固定した性格判定にせず、自分の傾向を振り返る材料として、次の一歩の選択に役立てましょう。",
     "symbol.numerology.life_path": "ライフパス {number}",
     "symbol.numerology.destiny": "運命数 {number}",
