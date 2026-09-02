@@ -12,7 +12,7 @@ from app.i18n import Lang, t
 class RunesEngine:
     id = "runes"
     name = "ルーン"
-    tradition = "北欧"
+    culture = "nordic"
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 

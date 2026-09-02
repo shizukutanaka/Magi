@@ -14,7 +14,7 @@ ALLOWED_SPREADS = ("three-card", "celtic-cross")
 class TarotEngine:
     id = "tarot"
     name = "タロット"
-    tradition = "西洋"
+    culture = "western"
     required_fields = frozenset()
     default_options = {"spread": "three-card"}
 

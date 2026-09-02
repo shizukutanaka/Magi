@@ -12,7 +12,7 @@ from app.i18n import Lang, t
 class OmikujiEngine:
     id = "omikuji"
     name = "おみくじ"
-    tradition = "日本"
+    culture = "japanese"
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 

@@ -40,7 +40,7 @@ def _julian_day(day: date) -> int:
 class MayanEngine:
     id = "mayan"
     name = "マヤ暦ツォルキン"
-    tradition = "中米"
+    culture = "mesoamerican"
     required_fields = frozenset({"birth_date"})
     default_options: dict[str, str] = {}
 

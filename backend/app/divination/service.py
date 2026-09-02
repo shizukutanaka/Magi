@@ -67,20 +67,19 @@ def select_daily_engines(
     inp: DivinationInput,
     subject_key: str,
 ) -> list[DivinationEngine]:
-    """Select up to three eligible engines from distinct traditions."""
+    """Select up to three eligible engines from distinct culture areas."""
     available = [
         engine
         for engine in all_engines()
         if all(getattr(inp, field, None) is not None for field in engine.required_fields)
     ]
+    by_culture: dict[str, list[DivinationEngine]] = {}
+    for engine in available:
+        by_culture.setdefault(engine.culture, []).append(engine)
+    cultures = sorted(by_culture)
     selection_rng = SeededRandom(hashlib.sha256(f"{subject_key}|{inp.target_date}".encode()).hexdigest())
-    selection = []
-    traditions = set()
-    for engine in selection_rng.sample(available, len(available)):
-        if engine.tradition not in traditions:
-            selection.append(engine)
-            traditions.add(engine.tradition)
-    return selection[:3]
+    chosen = selection_rng.sample(cultures, len(cultures))[:3]
+    return [selection_rng.choice(by_culture[culture]) for culture in chosen]
 
 
 def daily_reading(
@@ -88,7 +87,7 @@ def daily_reading(
     subject_key: str,
     lang: Lang = DEFAULT_LANG,
 ) -> dict:
-    """Return the deterministic three-tradition daily reading."""
+    """Return the deterministic three-culture-area daily reading."""
     _validate_spread(inp)
     selection = select_daily_engines(inp, subject_key)
     readings = [cast_reading(engine.id, inp, subject_key, lang) for engine in selection]

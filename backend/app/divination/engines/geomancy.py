@@ -52,7 +52,7 @@ def build_shield(rng: SeededRandom) -> ShieldChart:
 class GeomancyEngine:
     id = "geomancy"
     name = "ジオマンシー"
-    tradition = "西アフリカ・ヨーロッパ"
+    culture = "afro-european"
     required_fields = frozenset()
     default_options: dict[str, str] = {}
 
