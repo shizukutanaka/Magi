@@ -1,4 +1,4 @@
-const CATALOGS = {
+export const CATALOGS = {
   ja: {
     "nav.daily": "今日の三賢者",
     "nav.reading": "鑑定",
@@ -9,6 +9,8 @@ const CATALOGS = {
     "page.title.reading": "Magi — 鑑定",
     "page.title.result": "Magi — 鑑定結果",
     "page.title.history": "Magi — 履歴",
+    "meta.description": "世界の占術を横断して、自分の問いを見つめるMagi",
+    "a11y.skip": "本文へスキップ",
     "language.label": "言語",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "今日の三賢者",
@@ -73,6 +75,8 @@ const CATALOGS = {
     "page.title.reading": "Magi — Reading",
     "page.title.result": "Magi — Reading result",
     "page.title.history": "Magi — History",
+    "meta.description": "Magi helps you reflect on your question across traditions from around the world.",
+    "a11y.skip": "Skip to content",
     "language.label": "Language",
     "landing.eyebrow": "Magi / Daily Magi",
     "landing.title": "Daily Magi",
@@ -151,6 +155,10 @@ export function setPageTitle(view = activeView) {
     history: "history",
   }[view] ?? "landing";
   document.title = translate(`page.title.${activeView}`);
+  document.querySelector('meta[name="description"]')?.setAttribute(
+    "content",
+    translate("meta.description"),
+  );
 }
 
 export function resolveBrowserLanguage(params = new URLSearchParams(window.location.search)) {
