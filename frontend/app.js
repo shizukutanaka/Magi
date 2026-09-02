@@ -251,6 +251,9 @@ function renderResults(readings, input, subjectToken, { overview, score, daily =
     if (!saveReading(reading, input, subjectToken).saved) historyFailed = true;
     result.append(renderReading(reading, input, subjectToken));
   });
+  if (daily) result.append(element("p", translate("result.traditions_may_disagree"), "privacy-note"));
+  const disclaimer = readings.find((reading) => reading.disclaimer)?.disclaimer;
+  if (disclaimer) result.append(element("p", disclaimer, "privacy-note"));
   if (historyFailed) setStatus(translate("status.history_unavailable"));
   state.activeReadings = readings;
   state.activeInput = input;
