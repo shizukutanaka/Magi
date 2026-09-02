@@ -22,7 +22,7 @@ router = APIRouter(tags=["readings"])
 class ReadingRequest(BaseModel):
     engine_id: str
     input: DivinationInput
-    subject_key: str = Field(default="anonymous", max_length=64)
+    subject_key: str = Field(default="anonymous", min_length=1, max_length=64)
     lang: str | None = None
 
 
@@ -32,7 +32,7 @@ class DailyRequest(BaseModel):
     birth_date: date | None = None
     full_name: str | None = Field(default=None, max_length=100)
     options: dict[OptionText, OptionText] = Field(default_factory=dict)
-    subject_key: str = Field(default="anonymous", max_length=64)
+    subject_key: str = Field(default="anonymous", min_length=1, max_length=64)
     lang: str | None = None
 
 

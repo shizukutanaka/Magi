@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.ratelimit import RateLimiter
@@ -33,6 +34,21 @@ def test_reading_success():
     response = client.post("/api/v1/readings", json={"engine_id": "tarot", "input": {"target_date": "2026-01-01"}})
     assert response.status_code == 200
     assert response.json()["engine_id"] == "tarot"
+
+
+@pytest.mark.parametrize(
+    ("path", "payload"),
+    [
+        ("/api/v1/readings", {"engine_id": "tarot", "input": {"target_date": "2026-01-01"}}),
+        ("/api/v1/readings/daily", {"target_date": "2026-01-01"}),
+    ],
+)
+def test_empty_subject_key_is_rejected_but_omitted_subject_key_is_valid(path, payload):
+    empty = client.post(path, json={**payload, "subject_key": ""})
+    omitted = client.post(path, json=payload)
+
+    assert empty.status_code == 422
+    assert omitted.status_code == 200
 
 
 def test_removed_birth_time_is_ignored():

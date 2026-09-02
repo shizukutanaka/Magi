@@ -369,7 +369,8 @@ async function init() {
     const params = readUrl();
     if (params.get("engine") || params.get("daily") === "1") {
       fillForm(params);
-      const deepLinkSubject = params.has("s") ? params.get("s") : undefined;
+      const rawSubject = params.get("s")?.trim();
+      const deepLinkSubject = rawSubject ? rawSubject : undefined;
       if (params.get("daily") === "1") {
         await runDaily({
           date: params.get("date") || today(),
@@ -381,6 +382,7 @@ async function init() {
       } else {
         await runReading(inputFromForm(), params.get("engine"), deepLinkSubject);
       }
+      if (!deepLinkSubject && state.activeReadings.length) setStatus(translate("status.share_incomplete"));
     }
   } catch (error) {
     setStatus(error.message || translate("status.network"));
