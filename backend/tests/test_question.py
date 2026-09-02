@@ -33,6 +33,35 @@ def test_question_classification_examples(question, expected):
 
 
 @pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("I want to remove clutter from my room", "general"),
+        ("The apparent calm makes me uneasy", "general"),
+        ("I retired last year and feel restless", "general"),
+        ("I want to investigate a career change", "work"),
+        ("I need to investigate this strange feeling", "general"),
+        ("Should I move to another city?", "decision"),
+        ("moving abroad, should i decide now?", "decision"),
+        ("I moved to another city last year", "decision"),
+        ("How do I handle a conflict with my colleague?", "relationship"),
+        ("My parents disapprove of my plans", "relationship"),
+        ("My friends are distant lately", "relationship"),
+        ("I feel tired every morning", "health"),
+        ("I am sleepless after the change", "health"),
+        ("How do I recover from this illness?", "health"),
+        ("Should I increase my savings this month?", "decision"),
+        ("my investment portfolio", "money"),
+        ("投資を始めるべきタイミングですか", "money"),
+        ("片思いの相手に告白すべきでしょうか", "love"),
+        ("転職すべきか、今の職場に残るべきか", "work"),
+        ("最近ずっと疲れが取れません", "health"),
+    ],
+)
+def test_question_keyword_boundaries_and_suffixes(question, expected):
+    assert classify_question(question) == expected
+
+
+@pytest.mark.parametrize(
     "question",
     ["好きな人に告白すべきか", "How can I tell my crush how I feel?"],
 )

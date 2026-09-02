@@ -1,5 +1,7 @@
 """Deterministic topic classification for the user's question."""
 
+import re
+
 from app.divination.seed import normalize_question
 
 TOPICS: tuple[str, ...] = (
@@ -69,7 +71,9 @@ KEYWORDS: dict[str, tuple[str, ...]] = {
         "finance",
         "income",
         "savings",
-        "invest",
+        "investment",
+        "investing",
+        "investor",
         "debt",
         "salary",
         "budget",
@@ -127,6 +131,15 @@ KEYWORDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+_ASCII_PATTERNS: dict[str, dict[str, re.Pattern[str]]] = {
+    topic: {
+        keyword: re.compile(r"(?<![a-z0-9])" + re.escape(keyword))
+        for keyword in keywords
+        if keyword.isascii()
+    }
+    for topic, keywords in KEYWORDS.items()
+}
+
 
 def classify_question(question: str | None) -> str | None:
     """Return the topic with the most keyword matches in a question."""
@@ -140,12 +153,19 @@ def classify_question(question: str | None) -> str | None:
             continue
         count = 0
         earliest = len(normalized)
+        ascii_patterns = _ASCII_PATTERNS[topic]
         for keyword in KEYWORDS[topic]:
-            index = normalized.find(keyword)
-            if index < 0:
-                continue
-            count += normalized.count(keyword)
-            earliest = min(earliest, index)
+            pattern = ascii_patterns.get(keyword)
+            if pattern is not None:
+                matches = list(pattern.finditer(normalized))
+                if matches:
+                    count += len(matches)
+                    earliest = min(earliest, matches[0].start())
+            else:
+                index = normalized.find(keyword)
+                if index >= 0:
+                    count += normalized.count(keyword)
+                    earliest = min(earliest, index)
         if count:
             ranked.append((-count, earliest, topic_index, topic))
     if not ranked:
