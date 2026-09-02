@@ -328,6 +328,7 @@ function setupEvents() {
     event.preventDefault();
     runReading();
   });
+  window.addEventListener("hashchange", () => window.location.reload());
   document.querySelector("#export-history").addEventListener("click", () => exportHistory());
   document.querySelector("#clear-history").addEventListener("click", () => {
     clearHistory();
