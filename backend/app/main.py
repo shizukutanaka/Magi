@@ -13,10 +13,17 @@ app = FastAPI(title="Magi API")
 app.include_router(router, prefix="/api/v1")
 
 
+class NoCacheStaticFiles(StaticFiles):
+    def file_response(self, full_path, stat_result, scope, status_code=200):
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 def mount_frontend(application: FastAPI) -> None:
     static_dir = Path(os.getenv("MAGI_STATIC_DIR") or Path(__file__).resolve().parents[2] / "frontend")
     if static_dir.is_dir():
-        application.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+        application.mount("/", NoCacheStaticFiles(directory=static_dir, html=True), name="frontend")
 
 
 @app.get("/health")
