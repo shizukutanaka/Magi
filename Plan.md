@@ -170,6 +170,21 @@ INFO: 127.0.0.1:48904 - "GET /?engine=tarot&date=2026-09-01&q=%E8%BB%A2%E8%81%B7
 Refererに送られないため、サーバのアクセスログに残らない。過去のクエリ形式も互換性のため
 受け付け、静的レスポンスには `Referrer-Policy: no-referrer` を付ける。
 
+**Q29. プライバシー優先でself-hostできるアプリが、CSPなしで第三者CDNのコードを読むドキュメントページを出荷してよいか？**
+よくない。実際に静的 `/` と `/app.js` には `cache-control: no-cache` と
+`referrer-policy: no-referrer` しかなく、APIレスポンスにはセキュリティヘッダが無かった。
+さらに `/docs` は次の第三者CDNへ接続してSwagger UIを読み込む。
+
+```text
+https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css
+https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js
+```
+
+そこで全レスポンスに `Content-Security-Policy`、`X-Content-Type-Options`、
+`X-Frame-Options`、`Referrer-Policy` を付け、CSPは同一オリジンだけを許可する。
+外向きネットワークなしで動かせるよう、CDN依存の `/docs` と `/redoc` は無効にし、
+スキーマだけを `/openapi.json` で提供する。
+
 ---
 
 ## 2. 第一原理からの再構築
