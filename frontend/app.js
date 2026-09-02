@@ -119,7 +119,7 @@ function queryForReading(engineId, input, subjectToken, lang = state.lang) {
   if (input.options?.spread) params.set("spread", input.options.spread);
   params.set("s", subjectToken);
   params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
 }
 
 function queryForDaily(input, subjectToken, lang = state.lang) {
@@ -131,7 +131,7 @@ function queryForDaily(input, subjectToken, lang = state.lang) {
   if (input.full_name) params.set("name", input.full_name);
   params.set("s", subjectToken);
   params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
 }
 
 function textWithLabel(label, value) {
@@ -309,7 +309,8 @@ function renderHistory() {
 }
 
 function readUrl() {
-  return new URLSearchParams(window.location.search);
+  const fragment = window.location.hash.replace(/^#/, "");
+  return new URLSearchParams(fragment || window.location.search);
 }
 
 function setupEvents() {
@@ -357,7 +358,7 @@ async function changeLanguage(lang) {
 }
 
 async function init() {
-  state.lang = resolveBrowserLanguage();
+  state.lang = resolveBrowserLanguage(readUrl());
   setLanguage(state.lang);
   document.querySelector("#language-select").value = state.lang;
   document.querySelector("#target-date").value = today();

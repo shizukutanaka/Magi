@@ -21,7 +21,7 @@ from app.i18n import resolve_lang
 
 def _query_values(share_url: str) -> dict[str, str]:
     parsed = urlparse(share_url)
-    query = parsed.query
+    query = parsed.fragment or parsed.query
     if not query and "=" in parsed.path:
         query = parsed.path.lstrip("?")
     return {key: values[0] for key, values in parse_qs(query, keep_blank_values=True).items()}
