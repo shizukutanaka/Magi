@@ -76,7 +76,21 @@ export function loadHistory() {
 
 // 保存できたかを返す。呼び出し側は失敗を通知に使い、描画は止めない。
 export function addHistory(entry) {
-  const history = [entry, ...loadHistory()].slice(0, HISTORY_LIMIT);
+  const history = loadHistory();
+  const existingIndex = entry.seed
+    ? history.findIndex((item) => item.seed === entry.seed)
+    : -1;
+  if (existingIndex >= 0) {
+    const original = history[existingIndex];
+    history[existingIndex] = {
+      ...original,
+      ...entry,
+      generated_at: original.generated_at,
+    };
+  } else {
+    history.unshift(entry);
+    history.splice(HISTORY_LIMIT);
+  }
   return writeItem(HISTORY_KEY, JSON.stringify(history));
 }
 

@@ -33,3 +33,6 @@ jobs:
       - name: Test frontend translations
         working-directory: frontend
         run: node tests/i18n.test.mjs
+      - name: Test frontend store
+        working-directory: frontend
+        run: node tests/store.test.mjs
