@@ -14,6 +14,9 @@ const state = {
 const panels = [...document.querySelectorAll("[data-view-panel]")];
 const status = document.querySelector("#status");
 const engineSelect = document.querySelector("#engine-id");
+const readingSubmit = document.querySelector("#reading-form button[type=submit]");
+const dailyButton = document.querySelector("#daily-button");
+let readingInFlight = false;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -24,6 +27,12 @@ function element(tag, text, className) {
 
 function setStatus(message = "") {
   status.textContent = message;
+}
+
+function setReadingInFlight(inFlight) {
+  readingInFlight = inFlight;
+  readingSubmit.disabled = inFlight;
+  dailyButton.disabled = inFlight;
 }
 
 function showView(view, { focus = false } = {}) {
@@ -251,6 +260,8 @@ function renderResults(readings, input, subjectToken, { overview, score, daily =
 }
 
 async function runDaily(params = {}) {
+  if (readingInFlight) return;
+  setReadingInFlight(true);
   setStatus(translate("status.daily"));
   const input = {
     target_date: params.date || today(),
@@ -272,10 +283,14 @@ async function runDaily(params = {}) {
     });
   } catch (error) {
     setStatus(error.message || translate("status.network"));
+  } finally {
+    setReadingInFlight(false);
   }
 }
 
 async function runReading(input = inputFromForm(), engineId = engineSelect.value, subjectToken) {
+  if (readingInFlight) return;
+  setReadingInFlight(true);
   setStatus(translate("status.reading"));
   try {
     const token = subjectToken === undefined ? deriveSubjectToken(engineId, input) : subjectToken;
@@ -284,6 +299,8 @@ async function runReading(input = inputFromForm(), engineId = engineSelect.value
     renderResults([reading], input, token, {});
   } catch (error) {
     setStatus(error.message || translate("status.network"));
+  } finally {
+    setReadingInFlight(false);
   }
 }
 
