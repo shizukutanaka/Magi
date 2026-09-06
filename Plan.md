@@ -198,6 +198,11 @@ https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js
 エラーで起動を停止する。既定の静的ディレクトリが無い場合だけは、API-onlyで起動する
 ことを警告ログに残す。
 
+実効設定を1行記録する約束も、import時に`app.main`のロガーへINFOを送るだけでは、
+Uvicornの既定dictConfigがrootにハンドラを付けないため、実際のUvicorn起動経路では
+ログが捨てられていた。rootに外部ハンドラが無い場合だけMagiがstderrへINFOハンドラを
+追加し、既存のlogging設定は上書きしないようにする。
+
 ---
 
 ## 2. 第一原理からの再構築

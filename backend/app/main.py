@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
@@ -21,6 +22,18 @@ from app.divination import engines as _engines  # noqa: F401
 
 logger = logging.getLogger(__name__)
 DEFAULT_STATIC_DIR = Path(__file__).resolve().parents[2] / "frontend"
+
+
+def _configure_logging() -> None:
+    root_logger = logging.getLogger()
+    if root_logger.handlers:
+        return
+
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s:%(message)s"))
+    root_logger.addHandler(handler)
+    root_logger.setLevel(logging.INFO)
+
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'none'; object-src 'none'; "
@@ -98,5 +111,6 @@ def health():
     return {"status": "ok"}
 
 
+_configure_logging()
 validate_environment()
 mount_frontend(app)
