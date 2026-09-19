@@ -1,6 +1,8 @@
 from datetime import date
 
-from app.divination.base import DivinationInput
+import pytest
+
+from app.divination.base import DivinationInput, MissingFieldsError
 from app.divination.data.numerology import MASTER_NUMBERS, NUMBERS
 from app.divination.engines.numerology import _name_number
 from app.divination.registry import get_engine
@@ -45,3 +47,16 @@ def test_guidance_distinguishes_master_numbers():
 
 def test_name_number_ignores_punctuation():
     assert _name_number("Anne-Marie O'Neil") == _name_number("AnneMarieONeil")
+
+
+@pytest.mark.parametrize("name", ["", "   ", "123", "!!!", "　"])
+def test_letterless_name_is_missing_field(name):
+    inp = DivinationInput(
+        target_date=date(2026, 9, 1),
+        full_name=name,
+        birth_date=date(1990, 1, 1),
+    )
+    rng = SeededRandom(build_seed("numerology-test", "numerology", inp))
+    with pytest.raises(MissingFieldsError) as excinfo:
+        get_engine("numerology").cast(inp, rng)
+    assert excinfo.value.fields == ["full_name"]

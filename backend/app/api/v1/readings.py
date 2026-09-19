@@ -6,10 +6,9 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.ratelimit import rate_limit
-from app.divination.base import DivinationInput, OptionText
+from app.divination.base import DivinationInput, MissingFieldsError, OptionText
 from app.divination.registry import UnknownEngineError
 from app.divination.service import (
-    MissingFieldsError,
     UnknownSpreadError,
     cast_reading,
 )
@@ -78,5 +77,7 @@ def daily_reading(
     )
     try:
         return build_daily_reading(inp, payload.subject_key, lang)
+    except MissingFieldsError as exc:
+        raise HTTPException(status_code=422, detail={"missing_fields": exc.fields}) from exc
     except UnknownSpreadError as exc:
         raise HTTPException(status_code=422, detail=t(lang, "error.unknown_spread")) from exc

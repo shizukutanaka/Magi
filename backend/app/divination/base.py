@@ -13,6 +13,19 @@ if TYPE_CHECKING:
 DISCLAIMER = "本鑑定はエンターテインメントおよび内省の補助を目的とし、医療・法律・投資の助言ではありません。"
 
 
+class MissingFieldsError(Exception):
+    """Raised when an engine does not receive all required input fields.
+
+    必須フィールドは値を持っていても実質的に欠落している場合がある
+    （例: 文字を1文字も含まない氏名）。サービス層だけでなくエンジンも
+    送出できるよう、循環参照を避けてここに定義する。
+    """
+
+    def __init__(self, fields: list[str]) -> None:
+        self.fields = sorted(fields)
+        super().__init__(f"missing fields: {', '.join(self.fields)}")
+
+
 OptionText = Annotated[str, Field(max_length=64)]
 
 

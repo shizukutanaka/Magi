@@ -2,7 +2,13 @@
 
 import hashlib
 
-from app.divination.base import DivinationEngine, DivinationInput, Reading, ReadingSection
+from app.divination.base import (
+    DivinationEngine,
+    DivinationInput,
+    MissingFieldsError,
+    Reading,
+    ReadingSection,
+)
 from app.divination.engines.tarot import ALLOWED_SPREADS
 from app.divination.question import classify_question
 from app.divination.registry import all_engines, get_engine
@@ -18,12 +24,8 @@ class UnknownSpreadError(ReadingError):
     """Raised when Tarot receives an unsupported spread."""
 
 
-class MissingFieldsError(ReadingError):
-    """Raised when an engine does not receive all required input fields."""
-
-    def __init__(self, fields: list[str]) -> None:
-        self.fields = sorted(fields)
-        super().__init__(f"missing fields: {', '.join(self.fields)}")
+def _field_is_missing(value) -> bool:
+    return value is None or (isinstance(value, str) and not value.strip())
 
 
 def _add_question_focus(reading: Reading, inp: DivinationInput, lang: Lang) -> Reading:
@@ -52,8 +54,11 @@ def cast_reading(
 ) -> Reading:
     """Cast one reading using the same path as the HTTP API."""
     engine = get_engine(engine_id)
-    missing = [field for field in engine.required_fields if getattr(inp, field, None) is None]
-    if missing:
+    if missing := [
+        field
+        for field in engine.required_fields
+        if _field_is_missing(getattr(inp, field, None))
+    ]:
         raise MissingFieldsError(missing)
     known = {key: value for key, value in inp.options.items() if key in engine.default_options}
     inp = inp.model_copy(update={"options": {**engine.default_options, **known}})
@@ -71,7 +76,7 @@ def select_daily_engines(
     available = [
         engine
         for engine in all_engines()
-        if all(getattr(inp, field, None) is not None for field in engine.required_fields)
+        if not any(_field_is_missing(getattr(inp, field, None)) for field in engine.required_fields)
     ]
     by_culture: dict[str, list[DivinationEngine]] = {}
     for engine in available:

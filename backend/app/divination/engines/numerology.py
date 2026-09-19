@@ -7,7 +7,13 @@ only alphabetic characters are counted; non-ASCII letters are mapped by
 
 import unicodedata
 
-from app.divination.base import DivinationEngine, DivinationInput, DrawnSymbol, ReadingSection
+from app.divination.base import (
+    DivinationEngine,
+    DivinationInput,
+    DrawnSymbol,
+    MissingFieldsError,
+    ReadingSection,
+)
 from app.divination.data.localize import dt
 from app.divination.data.numerology import LETTER_VALUES, MASTER_NUMBERS, NUMBERS
 from app.divination.engines._common import finish
@@ -46,6 +52,10 @@ class NumerologyEngine:
     def cast(self, inp: DivinationInput, rng: SeededRandom, lang: Lang = "ja"):
         if inp.full_name is None or inp.birth_date is None:
             raise ValueError("full_name and birth_date are required")
+        # 文字を1文字も含まない氏名（""・"123"・全角空白のみ等）では換算値が
+        # 0になってNUMBERSに該当キーがなく500になるため、必須フィールド欠落として扱う。
+        if not any(char.isalpha() for char in unicodedata.normalize("NFKC", inp.full_name)):
+            raise MissingFieldsError(["full_name"])
         life_path = _life_path(inp.birth_date)
         destiny = _name_number(inp.full_name)
         drawn = [
