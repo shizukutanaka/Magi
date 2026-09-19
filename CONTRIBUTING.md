@@ -46,6 +46,7 @@ python -m pytest -q
 cd frontend
 node --check app.js && node --check i18n.js
 node tests/i18n.test.mjs
+node tests/store.test.mjs
 ```
 
 ワークフローは管理者が `.github/workflows/` にコピーした場合にのみ実行されます。

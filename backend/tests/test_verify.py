@@ -13,6 +13,20 @@ def share_url(**params: str) -> str:
     return f"https://example.test/?{urlencode(params)}"
 
 
+def fragment_share_url(**params: str) -> str:
+    return f"http://localhost:8000/#{urlencode(params)}"
+
+
+def test_cli_fragment_reading_matches_query(capsys):
+    params = {"engine": "tarot", "date": "2026-01-01", "s": "fragment-reading"}
+    assert main([share_url(**params), "--json"]) == 0
+    query_result = json.loads(capsys.readouterr().out)
+    assert main([fragment_share_url(**params), "--json"]) == 0
+    fragment_result = json.loads(capsys.readouterr().out)
+    assert fragment_result["seed"] == query_result["seed"]
+    assert fragment_result["drawn"] == query_result["drawn"]
+
+
 def test_cli_single_reading_matches_api(capsys):
     url = share_url(engine="tarot", date="2026-01-01", q="今日の問い", s="verify-single")
     exit_code = main([url, "--json"])

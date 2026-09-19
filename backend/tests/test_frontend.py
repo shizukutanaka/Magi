@@ -1,8 +1,12 @@
+import re
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+import app.main as main
+from app.core.config import ConfigError
 from app.main import app, mount_frontend
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
@@ -43,6 +47,12 @@ def test_static_files_revalidate_without_disabling_storage():
     assert conditional.headers["cache-control"] == "no-cache"
 
 
+def test_static_files_prevent_referrer_leaks():
+    response = TestClient(app).get("/")
+    assert response.status_code == 200
+    assert response.headers["referrer-policy"] == "no-referrer"
+
+
 def test_api_routes_are_not_shadowed_by_frontend():
     client = TestClient(app)
     assert client.get("/health").status_code == 200
@@ -56,7 +66,7 @@ def test_unknown_frontend_path_returns_404():
     assert response.status_code == 404
 
 
-def test_missing_static_directory_skips_mount(monkeypatch):
+def test_missing_explicit_static_directory_fails(monkeypatch):
     missing = str(FRONTEND_DIR / "not-present")
     monkeypatch.setenv("MAGI_STATIC_DIR", missing)
     application = FastAPI()
@@ -65,7 +75,24 @@ def test_missing_static_directory_skips_mount(monkeypatch):
     def health():
         return {"status": "ok"}
 
-    mount_frontend(application)
+    with pytest.raises(ConfigError, match=re.escape(missing)):
+        mount_frontend(application)
+
+
+def test_missing_default_static_directory_starts_api_only(monkeypatch, caplog):
+    monkeypatch.delenv("MAGI_STATIC_DIR", raising=False)
+    missing = FRONTEND_DIR / "not-present"
+    monkeypatch.setattr(main, "DEFAULT_STATIC_DIR", missing)
+    application = FastAPI()
+
+    @application.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    with caplog.at_level("WARNING", logger="app.main"):
+        mount_frontend(application)
+
     client = TestClient(application)
     assert client.get("/health").json() == {"status": "ok"}
     assert client.get("/").status_code == 404
+    assert "API-only" in caplog.text
