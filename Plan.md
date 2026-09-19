@@ -215,6 +215,52 @@ APIが受け付ける入力の集合は共有URLが運べる入力の集合と�
 （「CIがある」と書いて済ませることは、Q21の乱数スコアと同種の虚偽になる）。
 ワークフローの各ステップは手元で全て実行し、通ることを確認している。
 
+||||||| parent of c0e90a7 (fix: 共有URLの再現ペイロードをフラグメントへ移す)
+**Q28. 再現に必要な入力を、サーバのアクセスログに書かせてよいか？**
+よくない。共有URLのクエリ文字列に問い・生年月日・氏名を含めると、ページを開くだけで
+個人情報がアクセスログへ平文で記録される。実際に次のログが観測された。
+
+```text
+INFO: 127.0.0.1:48904 - "GET /?engine=tarot&date=2026-09-01&q=%E8%BB%A2%E8%81%B7%E3%81%99%E3%81%B9%E3%81%8D%E3%81%8B&birth=1990-04-01&name=%E7%94%B0%E4%B8%AD%E9%9B%AA&s=abc123 HTTP/1.1" 200 OK
+```
+
+再現に必要なペイロードはURLフラグメント（`#` 以降）へ移す。フラグメントはHTTPリクエストや
+Refererに送られないため、サーバのアクセスログに残らない。過去のクエリ形式も互換性のため
+受け付け、静的レスポンスには `Referrer-Policy: no-referrer` を付ける。
+
+**Q29. プライバシー優先でself-hostできるアプリが、CSPなしで第三者CDNのコードを読むドキュメントページを出荷してよいか？**
+よくない。実際に静的 `/` と `/app.js` には `cache-control: no-cache` と
+`referrer-policy: no-referrer` しかなく、APIレスポンスにはセキュリティヘッダが無かった。
+さらに `/docs` は次の第三者CDNへ接続してSwagger UIを読み込む。
+
+```text
+https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css
+https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js
+```
+
+そこで全レスポンスに `Content-Security-Policy`、`X-Content-Type-Options`、
+`X-Frame-Options`、`Referrer-Policy` を付け、CSPは同一オリジンだけを許可する。
+外向きネットワークなしで動かせるよう、CDN依存の `/docs` と `/redoc` は無効にし、
+スキーマだけを `/openapi.json` で提供する。
+
+**Q30. self-hostできるアプリが、環境変数の設定ミスを黙って既定値へ置き換えてよいか？**
+よくない。実際に `MAGI_RATE_LIMIT_PER_MINUTE=1O0`（数字の1とゼロではなく英字O）
+は指定値100ではなく既定値60になり、`MAGI_TRUST_PROXY=maybe` は `False` になった。
+後者では前段プロキシの背後にある全利用者が同じプロキシIPとして扱われ、
+1分60回のレートリミットをサイト全体で共有する障害モードになる。さらに
+`MAGI_STATIC_DIR=/tmp/does-not-exist-xyz` は `/health` が正常でも `/` が404になり、
+設定ミスを示すログも出なかった。
+
+設定値は空欄だけを未指定として既定値にし、整数や真偽値として解釈できない値、
+明示的に指定した存在しない静的ディレクトリは変数名または解決済みパスを含む
+エラーで起動を停止する。既定の静的ディレクトリが無い場合だけは、API-onlyで起動する
+ことを警告ログに残す。
+
+実効設定を1行記録する約束も、import時に`app.main`のロガーへINFOを送るだけでは、
+Uvicornの既定dictConfigがrootにハンドラを付けないため、実際のUvicorn起動経路では
+ログが捨てられていた。rootに外部ハンドラが無い場合だけMagiがstderrへINFOハンドラを
+追加し、既存のlogging設定は上書きしないようにする。
+
 ---
 
 ## 2. 第一原理からの再構築

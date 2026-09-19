@@ -14,6 +14,9 @@ const state = {
 const panels = [...document.querySelectorAll("[data-view-panel]")];
 const status = document.querySelector("#status");
 const engineSelect = document.querySelector("#engine-id");
+const readingSubmit = document.querySelector("#reading-form button[type=submit]");
+const dailyButton = document.querySelector("#daily-button");
+let readingInFlight = false;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -24,6 +27,12 @@ function element(tag, text, className) {
 
 function setStatus(message = "") {
   status.textContent = message;
+}
+
+function setReadingInFlight(inFlight) {
+  readingInFlight = inFlight;
+  readingSubmit.disabled = inFlight;
+  dailyButton.disabled = inFlight;
 }
 
 function showView(view, { focus = false } = {}) {
@@ -119,7 +128,7 @@ function queryForReading(engineId, input, subjectToken, lang = state.lang) {
   if (input.options?.spread) params.set("spread", input.options.spread);
   params.set("s", subjectToken);
   params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
 }
 
 function queryForDaily(input, subjectToken, lang = state.lang) {
@@ -131,7 +140,7 @@ function queryForDaily(input, subjectToken, lang = state.lang) {
   if (input.full_name) params.set("name", input.full_name);
   params.set("s", subjectToken);
   params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
 }
 
 function textWithLabel(label, value) {
@@ -242,6 +251,9 @@ function renderResults(readings, input, subjectToken, { overview, score, daily =
     if (!saveReading(reading, input, subjectToken).saved) historyFailed = true;
     result.append(renderReading(reading, input, subjectToken));
   });
+  if (daily) result.append(element("p", translate("result.traditions_may_disagree"), "privacy-note"));
+  const disclaimer = readings.find((reading) => reading.disclaimer)?.disclaimer;
+  if (disclaimer) result.append(element("p", disclaimer, "privacy-note"));
   if (historyFailed) setStatus(translate("status.history_unavailable"));
   state.activeReadings = readings;
   state.activeInput = input;
@@ -251,6 +263,8 @@ function renderResults(readings, input, subjectToken, { overview, score, daily =
 }
 
 async function runDaily(params = {}) {
+  if (readingInFlight) return;
+  setReadingInFlight(true);
   setStatus(translate("status.daily"));
   const input = {
     target_date: params.date || today(),
@@ -272,10 +286,14 @@ async function runDaily(params = {}) {
     });
   } catch (error) {
     setStatus(error.message || translate("status.network"));
+  } finally {
+    setReadingInFlight(false);
   }
 }
 
 async function runReading(input = inputFromForm(), engineId = engineSelect.value, subjectToken) {
+  if (readingInFlight) return;
+  setReadingInFlight(true);
   setStatus(translate("status.reading"));
   try {
     const token = subjectToken === undefined ? deriveSubjectToken(engineId, input) : subjectToken;
@@ -284,6 +302,8 @@ async function runReading(input = inputFromForm(), engineId = engineSelect.value
     renderResults([reading], input, token, {});
   } catch (error) {
     setStatus(error.message || translate("status.network"));
+  } finally {
+    setReadingInFlight(false);
   }
 }
 
@@ -309,7 +329,8 @@ function renderHistory() {
 }
 
 function readUrl() {
-  return new URLSearchParams(window.location.search);
+  const fragment = window.location.hash.replace(/^#/, "");
+  return new URLSearchParams(fragment || window.location.search);
 }
 
 function setupEvents() {
@@ -327,6 +348,7 @@ function setupEvents() {
     event.preventDefault();
     runReading();
   });
+  window.addEventListener("hashchange", () => window.location.reload());
   document.querySelector("#export-history").addEventListener("click", () => exportHistory());
   document.querySelector("#clear-history").addEventListener("click", () => {
     clearHistory();
@@ -357,7 +379,7 @@ async function changeLanguage(lang) {
 }
 
 async function init() {
-  state.lang = resolveBrowserLanguage();
+  state.lang = resolveBrowserLanguage(readUrl());
   setLanguage(state.lang);
   document.querySelector("#language-select").value = state.lang;
   document.querySelector("#target-date").value = today();
