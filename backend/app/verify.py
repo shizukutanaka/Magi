@@ -8,10 +8,9 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
-from app.divination.base import DivinationInput, Reading
+from app.divination.base import DivinationInput, MissingFieldsError, Reading
 from app.divination.registry import UnknownEngineError
 from app.divination.service import (
-    MissingFieldsError,
     UnknownSpreadError,
     cast_reading,
     daily_reading,

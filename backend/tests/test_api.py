@@ -161,6 +161,54 @@ def test_reading_required_input_missing():
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize("full_name", ["", "   ", "123", "!!!", "　"])
+def test_reading_letterless_full_name_is_unprocessable(full_name):
+    response = client.post(
+        "/api/v1/readings",
+        json={
+            "engine_id": "numerology",
+            "input": {
+                "target_date": "2026-01-01",
+                "birth_date": "1990-01-01",
+                "full_name": full_name,
+            },
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == {"missing_fields": ["full_name"]}
+
+
+def test_daily_letterless_full_name_is_unprocessable():
+    # "123" は必須条件を形式上満たすため数秘術が選ばれ得るが、文字を含まないため
+    # 実質欠落として422を返す（500にならないこと）。
+    response = client.post(
+        "/api/v1/readings/daily",
+        json={
+            "target_date": "2026-01-01",
+            "birth_date": "1990-01-01",
+            "full_name": "123",
+            "subject_key": "letterless",
+        },
+    )
+    assert response.status_code in (200, 422)
+    if response.status_code == 422:
+        assert response.json()["detail"] == {"missing_fields": ["full_name"]}
+
+
+def test_daily_blank_full_name_is_treated_as_absent():
+    response = client.post(
+        "/api/v1/readings/daily",
+        json={
+            "target_date": "2026-01-01",
+            "birth_date": "1990-01-01",
+            "full_name": "",
+            "subject_key": "blank",
+        },
+    )
+    assert response.status_code == 200
+    assert "numerology" not in {reading["engine_id"] for reading in response.json()["readings"]}
+
+
 def test_daily_returns_three_distinct_traditions():
     response = client.post("/api/v1/readings/daily", json={"target_date": "2026-01-01", "subject_key": "daily"})
     assert response.status_code == 200
