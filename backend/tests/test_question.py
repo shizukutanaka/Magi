@@ -51,6 +51,13 @@ def test_question_classification_examples(question, expected):
         ("How do I recover from this illness?", "health"),
         ("Should I increase my savings this month?", "decision"),
         ("my investment portfolio", "money"),
+        # 別語の一部にキーワードが現れても領域にしない（右側語境界）
+        ("She is such a lovely person", "general"),
+        ("My neighbor is bossy about everything", "relationship"),
+        ("The movement for change continues", "general"),
+        ("I want to workout daily", "health"),
+        ("Tell me about my jobs", "work"),
+        ("I crushed the presentation", "love"),
         ("投資を始めるべきタイミングですか", "money"),
         ("片思いの相手に告白すべきでしょうか", "love"),
         ("転職すべきか、今の職場に残るべきか", "work"),
