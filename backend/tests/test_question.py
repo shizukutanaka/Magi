@@ -33,6 +33,33 @@ def test_question_classification_examples(question, expected):
 
 
 @pytest.mark.parametrize(
+    "question",
+    [
+        "迷信を信じるべきですか",
+        "迷子の猫は戻りますか",
+        "迷路のような手続き",
+        "迷惑メールが多くて困っています",
+    ],
+)
+def test_japanese_decision_keyword_does_not_match_unrelated_words(question):
+    assert classify_question(question) == "general"
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "どちらか迷っています",
+        "人生に迷いがあります",
+        "迷わず進むべきでしょうか",
+        "引っ越しをするべきでしょうか",
+        "どちらの道を選ぶべきですか",
+    ],
+)
+def test_japanese_decision_keyword_matches_conjugation_stems(question):
+    assert classify_question(question) == "decision"
+
+
+@pytest.mark.parametrize(
     ("question", "expected"),
     [
         ("I want to remove clutter from my room", "general"),
