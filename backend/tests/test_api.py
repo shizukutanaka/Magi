@@ -93,6 +93,7 @@ def test_systems_can_be_localized():
         tarot = next(system for system in response.json() if system["id"] == "tarot")
         assert tarot["name"] == "Tarot"
         assert tarot["interpretation_langs"] == ["ja", "en"]
+        assert "Accept-Language" in response.headers.get("vary", "")
 
 
 def test_reading_can_be_localized_without_changing_seed():
