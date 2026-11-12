@@ -33,6 +33,14 @@ def test_static_assets_are_served():
         assert content_type in response.headers["content-type"]
 
 
+def test_tarot_page_is_served():
+    response = TestClient(app).get("/tarot.html")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Magi Tarot" in response.text
+    assert "エンターテインメント" in response.text
+
+
 def test_static_files_revalidate_without_disabling_storage():
     client = TestClient(app)
 

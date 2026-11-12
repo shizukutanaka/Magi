@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magi Tarot</title>
+<style>
+  :root{
+    --bg:#141126; --bg2:#1d1839; --panel:#241e47; --line:#3a3266;
+    --gold:#c9a227; --gold-soft:#e6c95c; --cream:#f7f1de; --ink:#262040;
+    --text:#ece7d8; --muted:#a99fd0; --accent:#8f7ff5;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #2a2158 0%, var(--bg) 55%) fixed, var(--bg);
+    color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.6; min-height:100vh; display:flex; flex-direction:column;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; max-width:1060px; width:100%; margin:0 auto;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .brand h1{
+    font-family:Georgia,"Hiragino Mincho ProN","Yu Mincho",serif;
+    font-size:26px; letter-spacing:.14em; color:var(--gold-soft); font-weight:600;
+  }
+  .brand .sub{font-size:12px; color:var(--muted); letter-spacing:.08em;}
+  .lang-switch{display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; flex:none;}
+  .lang-switch button{
+    background:transparent; color:var(--muted); border:0; padding:6px 14px;
+    font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  .lang-switch button.active{background:var(--gold); color:#241c04; font-weight:700;}
+  main{flex:1; width:100%; max-width:1060px; margin:0 auto; padding:6px 18px 30px;}
+  .controls{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:14px 0 4px;}
+  .draw-btn{
+    font-family:inherit; cursor:pointer; border:1px solid var(--gold);
+    background:linear-gradient(180deg,#2e2560,#241d4d); color:var(--cream);
+    border-radius:14px; padding:16px 22px; min-width:210px; text-align:center;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .draw-btn:hover{transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,.45);}
+  .draw-btn:active{transform:translateY(0);}
+  .draw-btn .big{display:block; font-size:19px; font-weight:700; letter-spacing:.06em;}
+  .draw-btn .small{display:block; font-size:12px; color:var(--muted); margin-top:2px;}
+  .controls-note{text-align:center; color:var(--muted); font-size:12px; margin-top:8px; min-height:1.4em;}
+  .sub-actions{display:flex; justify-content:center; margin-top:10px;}
+  .ghost-btn{
+    font-family:inherit; background:transparent; color:var(--gold-soft);
+    border:1px solid var(--line); border-radius:999px; padding:7px 18px;
+    font-size:13px; cursor:pointer; display:none;
+  }
+  .ghost-btn.show{display:inline-block;}
+  #stage{
+    display:flex; gap:20px; justify-content:center; align-items:flex-start;
+    flex-wrap:wrap; margin-top:26px;
+  }
+  .slot{width:300px; max-width:88vw;}
+  .pos-label{
+    text-align:center; font-size:13px; letter-spacing:.22em; color:var(--gold-soft);
+    margin-bottom:10px; text-transform:uppercase; min-height:1.5em;
+  }
+  .card3d{width:200px; height:320px; margin:0 auto; perspective:1100px;}
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d; transition:transform .65s cubic-bezier(.2,.7,.3,1);
+  }
+  .slot.flipped .card-inner{transform:rotateY(180deg);}
+  .slot.shuffling .card-inner{animation:shuffle-wiggle .55s ease-in-out;}
+  @keyframes shuffle-wiggle{
+    0%{transform:rotate(0deg) translateX(0);}
+    25%{transform:rotate(-4deg) translateX(-9px);}
+    55%{transform:rotate(3.5deg) translateX(8px);}
+    100%{transform:rotate(0deg) translateX(0);}
+  }
+  .face{
+    position:absolute; inset:0; border-radius:14px; overflow:hidden;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    box-shadow:0 10px 28px rgba(0,0,0,.5);
+  }
+  .face.back{
+    background:
+      radial-gradient(circle at 50% 38%, rgba(201,162,39,.28) 0 52px, transparent 53px),
+      repeating-linear-gradient(45deg, #2b2260 0 10px, #251d52 10px 20px);
+    border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; width:100%;
+    font-family:inherit; padding:0;
+  }
+  .face.back .back-mark{
+    font-family:Georgia,serif; color:var(--gold-soft); font-size:34px;
+    border:1.5px solid var(--gold); border-radius:50%; width:76px; height:76px;
+    display:flex; align-items:center; justify-content:center; background:rgba(20,17,38,.55);
+  }
+  .face.front{
+    transform:rotateY(180deg); background:linear-gradient(170deg,#fbf6e3,#efe4c4);
+    color:var(--ink); border:2px solid var(--gold);
+    display:flex; flex-direction:column; align-items:center; padding:14px 12px;
+  }
+  .art{display:flex; flex-direction:column; align-items:center; width:100%; height:100%;}
+  .art.reversed{transform:rotate(180deg);}
+  .art .numeral{
+    font-family:Georgia,"Hiragino Mincho ProN",serif; font-size:15px;
+    letter-spacing:.3em; color:#7a6414; margin-bottom:4px;
+  }
+  .art .hero{
+    flex:1; display:flex; align-items:center; justify-content:center; width:100%;
+  }
+  .art .hero .big-glyph{
+    font-family:Georgia,"Hiragino Mincho ProN",serif; font-size:64px; color:#372c66; line-height:1;
+  }
+  .art .pips{display:grid; gap:5px; justify-items:center; align-content:center;}
+  .art .pips svg{width:26px; height:26px;}
+  .art .hero svg.suit-big{width:96px; height:96px;}
+  .art .card-name{
+    font-family:Georgia,"Hiragino Mincho ProN","Yu Mincho",serif;
+    font-size:17px; font-weight:700; text-align:center; color:#2c2350; line-height:1.35;
+  }
+  .art .card-name-en{font-size:11px; letter-spacing:.12em; color:#7a6414; text-align:center; margin-top:2px; text-transform:uppercase;}
+  .reading{
+    margin-top:16px; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; opacity:0; transform:translateY(6px);
+    transition:opacity .4s ease .25s, transform .4s ease .25s;
+  }
+  .slot.flipped .reading{opacity:1; transform:none;}
+  .reading .r-name{font-weight:700; font-size:16px; color:var(--cream);}
+  .badge{
+    display:inline-block; font-size:11px; font-weight:700; border-radius:999px;
+    padding:2px 10px; margin-left:8px; vertical-align:middle; letter-spacing:.06em;
+  }
+  .badge.up{background:#2e5d3a; color:#cdeecd;}
+  .badge.rev{background:#6d2f35; color:#f3d3d3;}
+  .keywords{display:flex; gap:6px; flex-wrap:wrap; margin:9px 0 4px;}
+  .keywords span{
+    font-size:11.5px; background:#171233; color:var(--gold-soft);
+    border:1px solid var(--line); border-radius:999px; padding:2px 9px;
+  }
+  .reading .meaning{font-size:14px; color:var(--text); margin-top:6px;}
+  section.history{margin-top:44px;}
+  section.history h2{
+    font-size:16px; letter-spacing:.14em; color:var(--gold-soft);
+    border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:12px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .clear-btn{
+    font-family:inherit; font-size:12px; background:transparent; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:4px 12px; cursor:pointer; letter-spacing:0;
+  }
+  .hist-empty{color:var(--muted); font-size:13.5px;}
+  .hist-item{
+    width:100%; text-align:left; font-family:inherit; cursor:pointer;
+    background:var(--bg2); color:var(--text); border:1px solid var(--line);
+    border-radius:10px; padding:11px 14px; margin-bottom:8px; display:block;
+  }
+  .hist-item:hover{border-color:var(--gold);}
+  .hist-item .h-date{font-size:12px; color:var(--muted);}
+  .hist-item .h-cards{font-size:14px; margin-top:2px;}
+  .hist-item .h-mode{font-size:11px; color:var(--gold-soft); letter-spacing:.1em; margin-right:8px;}
+  footer{
+    border-top:1px solid var(--line); padding:16px 18px 22px; text-align:center;
+    color:var(--muted); font-size:12px; max-width:1060px; width:100%; margin:0 auto;
+  }
+  @media (max-width:560px){
+    .brand h1{font-size:21px;}
+    .draw-btn{min-width:0; flex:1 1 150px; padding:14px 10px;}
+    .card3d{width:172px; height:276px;}
+    .slot{width:100%;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>MAGI TAROT</h1>
+    <span class="sub" data-i18n="sub"></span>
+  </div>
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" id="lang-ja">日本語</button>
+    <button type="button" id="lang-en">English</button>
+  </div>
+</header>
+
+<main>
+  <div class="controls">
+    <button type="button" class="draw-btn" id="draw-one">
+      <span class="big" data-i18n="one"></span>
+      <span class="small" data-i18n="oneSub"></span>
+    </button>
+    <button type="button" class="draw-btn" id="draw-three">
+      <span class="big" data-i18n="three"></span>
+      <span class="small" data-i18n="threeSub"></span>
+    </button>
+  </div>
+  <p class="controls-note" id="controls-note"></p>
+  <div class="sub-actions">
+    <button type="button" class="ghost-btn" id="reveal-all"></button>
+  </div>
+
+  <div id="stage" aria-live="polite"></div>
+
+  <section class="history">
+    <h2><span data-i18n="history"></span><button type="button" class="clear-btn" id="clear-history"></button></h2>
+    <div id="history-list"></div>
+  </section>
+</main>
+
+<footer>
+  <p data-i18n="disclaimer"></p>
+  <p style="margin-top:6px;" data-i18n="footNote"></p>
+</footer>
+
+<script>
+"use strict";
+const CARDS = /*CARDS-BEGIN*/[{"key":"the-fool","name":{"ja":"愚者","en":"The Fool"},"kwUp":["自由","旅立ち","可能性"],"kwRev":["軽率","無計画","停滞"],"up":{"ja":"未知を恐れず、既成の道から一歩外へ踏み出す勇気が新しい経験を招きます。","en":"A willingness to step beyond familiar paths can open the door to new experiences."},"rev":{"ja":"勢いだけで進むと準備不足が表面化します。大切なものを確認してから出発しましょう。","en":"Moving on momentum alone may expose gaps in your preparation. Check what matters before setting out."},"major":true,"num":0},{"key":"the-magician","name":{"ja":"魔術師","en":"The Magician"},"kwUp":["創造","才能","集中"],"kwRev":["散漫","未熟","欺き"],"up":{"ja":"手元の知識と道具を組み合わせれば、考えていたことを現実の計画へ変えられます。","en":"When you combine the knowledge and tools at hand, an idea can become a workable plan."},"rev":{"ja":"できることを広げすぎると力が分散します。誠実な目的を一つに絞り直してください。","en":"Trying to do everything at once scatters your strength. Narrow your focus to one honest purpose."},"major":true,"num":1},{"key":"the-high-priestess","name":{"ja":"女教皇","en":"The High Priestess"},"kwUp":["直感","沈黙","神秘"],"kwRev":["秘密","混乱","表面化"],"up":{"ja":"すぐに答えを出さず、静かな時間に浮かぶ感覚を信頼すると本質が見えてきます。","en":"Rather than forcing an answer, trust what rises in quiet moments and the deeper pattern may become clear."},"rev":{"ja":"情報を隠したままでは不安が増します。事実と憶測を分けて心を整えましょう。","en":"Keeping information hidden can increase unease. Separate facts from guesses and let your mind settle."},"major":true,"num":2},{"key":"the-empress","name":{"ja":"女帝","en":"The Empress"},"kwUp":["豊穣","愛情","育成"],"kwRev":["停滞","過保護","依存"],"up":{"ja":"人や企画を温かく育てる姿勢が、豊かさと実りをゆっくりと引き寄せます。","en":"A warm, patient way of tending people or projects can draw abundance and a gradual harvest."},"rev":{"ja":"与えすぎて自分を消耗させていないか見直しましょう。相手の成長する余白も必要です。","en":"Consider whether giving too much is leaving you depleted. Others also need room to grow for themselves."},"major":true,"num":3},{"key":"the-emperor","name":{"ja":"皇帝","en":"The Emperor"},"kwUp":["秩序","責任","安定"],"kwRev":["独断","硬直","支配"],"up":{"ja":"責任ある立場としてルールと境界を定めることが、周囲に安心して進める土台を作ります。","en":"Setting clear rules and boundaries from a responsible position can give everyone firmer ground."},"rev":{"ja":"自分の正しさを押し通すほど協力が遠のきます。意見を聞く柔軟さを取り戻しましょう。","en":"The harder you press your own correctness, the farther cooperation moves away. Make room to hear other views."},"major":true,"num":4},{"key":"the-hierophant","name":{"ja":"教皇","en":"The Hierophant"},"kwUp":["伝統","学習","信頼"],"kwRev":["反発","形式","盲従"],"up":{"ja":"信頼できる師や共同体の知恵に学ぶと、独力では見えなかった筋道を理解できます。","en":"Learning from a trusted teacher or community can reveal a path that was difficult to see alone."},"rev":{"ja":"形式だけを守ると本来の目的を失います。教えの意味を自分の言葉で確かめましょう。","en":"Following form without its purpose can leave the lesson hollow. Make sure you understand the teaching in your own words."},"major":true,"num":5},{"key":"the-lovers","name":{"ja":"恋人","en":"The Lovers"},"kwUp":["選択","調和","結合"],"kwRev":["不一致","誘惑","迷い"],"up":{"ja":"心と価値観が響き合う選択をすれば、関係にも仕事にも生きた調和が生まれます。","en":"A choice aligned with your heart and values can bring living harmony to both relationships and work."},"rev":{"ja":"誰かの期待だけで決めると後悔が残ります。自分が本当に大切にしたい基準を選びましょう。","en":"A decision made only for someone else's expectations can leave regret behind. Choose by what you truly value."},"major":true,"num":6},{"key":"the-chariot","name":{"ja":"戦車","en":"The Chariot"},"kwUp":["勝利","意志","前進"],"kwRev":["暴走","対立","失速"],"up":{"ja":"相反する力を一つの目的へ向ければ、迷いを越えて大きく前進する推進力になります。","en":"Bringing opposing forces toward one purpose can turn uncertainty into strong forward momentum."},"rev":{"ja":"勝ち急ぐと周囲との衝突を招きます。速度を落として方向を確認することが成功への近道です。","en":"Rushing to win can create collisions around you. Slow down enough to check your direction."},"major":true,"num":7},{"key":"strength","name":{"ja":"力","en":"Strength"},"kwUp":["勇気","慈愛","自制"],"kwRev":["弱気","緊張","強引"],"up":{"ja":"力で抑え込まず、恐れや衝動に優しく向き合うことが本当の強さを育てます。","en":"Meeting fear and impulse with gentleness rather than force is what develops lasting strength."},"rev":{"ja":"不安を隠すために強く振る舞っているかもしれません。呼吸を整え、穏やかな対話を選びましょう。","en":"You may be acting tough to hide unease. Let your breath settle and choose a calmer conversation."},"major":true,"num":8},{"key":"the-hermit","name":{"ja":"隠者","en":"The Hermit"},"kwUp":["内省","探求","知恵"],"kwRev":["孤立","閉鎖","迷走"],"up":{"ja":"外の評価から距離を置き、自分で確かめた知恵を次の判断の灯りとして持ち帰る時です。","en":"Stepping back from outside judgment lets you carry hard-won wisdom into your next decision."},"rev":{"ja":"一人で抱え込むほど視野が狭くなります。信頼できる相手に考えを話してみましょう。","en":"The more you hold everything alone, the narrower your view becomes. Try sharing your thoughts with someone you trust."},"major":true,"num":9},{"key":"wheel-of-fortune","name":{"ja":"運命の輪","en":"Wheel of Fortune"},"kwUp":["転機","循環","好機"],"kwRev":["停滞","悪循環","抵抗"],"up":{"ja":"状況は巡り変わります。訪れた機会に柔軟に乗ることで、流れを味方につけられます。","en":"Circumstances move in cycles, and flexibility can help you make use of an opportunity as it arrives."},"rev":{"ja":"変化を拒むと同じ課題が形を変えて繰り返されます。手放せる習慣から動かしましょう。","en":"Resisting change can make the same lesson return in another form. Begin with a habit you are ready to release."},"major":true,"num":10},{"key":"justice","name":{"ja":"正義","en":"Justice"},"kwUp":["公平","判断","真実"],"kwRev":["不公平","偏り","回避"],"up":{"ja":"感情と事実を分けて誠実に判断すれば、長期的に釣り合いの取れた結果へ近づけます。","en":"Separating feeling from fact and judging honestly can bring you closer to a balanced result over time."},"rev":{"ja":"都合の悪い責任を避けると不均衡が残ります。自分の選択の影響を静かに引き受けましょう。","en":"Avoiding an inconvenient responsibility leaves an imbalance behind. Quietly acknowledge the effects of your choice."},"major":true,"num":11},{"key":"the-hanged-man","name":{"ja":"吊るされた男","en":"The Hanged Man"},"kwUp":["受容","視点転換","献身"],"kwRev":["徒労","執着","先延ばし"],"up":{"ja":"すぐに結果を求めず見方を逆転させることで、停滞に見えた時間が深い理解へ変わります。","en":"A change of perspective can turn time that feels stalled into a deeper understanding."},"rev":{"ja":"犠牲を続けることだけが誠実さではありません。期限を決めて新しい方法を試しましょう。","en":"Continuing to sacrifice yourself is not the only form of sincerity. Set a limit and try a different approach."},"major":true,"num":12},{"key":"death","name":{"ja":"死神","en":"Death"},"kwUp":["変容","終わり","再生"],"kwRev":["停滞","執着","恐れ"],"up":{"ja":"役目を終えたものを手放す勇気が、次の季節へ進むための余白と再生の力を作ります。","en":"The courage to release what has finished its role creates room for renewal and the next season."},"rev":{"ja":"終わった関係や習慣への執着が変化を遅らせています。悲しみを認めて少しずつ整理しましょう。","en":"Attachment to a finished relationship or habit is slowing change. Let the grief be real while you sort things out gradually."},"major":true,"num":13},{"key":"temperance","name":{"ja":"節制","en":"Temperance"},"kwUp":["調和","調整","癒し"],"kwRev":["極端","浪費","不均衡"],"up":{"ja":"異なるものを無理なく混ぜる調整力が、心身と計画の流れを滑らかに整えてくれます。","en":"The skill of blending different things with care can smooth the flow of both your plans and your inner life."},"rev":{"ja":"頑張りと休息の配分が崩れています。極端な判断を避け、生活のリズムを戻しましょう。","en":"The balance between effort and rest has slipped. Avoid extremes and find your rhythm again."},"major":true,"num":14},{"key":"the-devil","name":{"ja":"悪魔","en":"The Devil"},"kwUp":["欲望","束縛","物質"],"kwRev":["解放","自覚","回復"],"up":{"ja":"魅力的な欲望の中にも自分を縛る契約があります。何に力を渡しているか自覚しましょう。","en":"Even an attractive desire may contain an agreement that binds you. Notice where your power is being handed over."},"rev":{"ja":"依存や恐れの正体に気づき、少しずつ主導権を取り戻す好機です。助けを求めてもよい時です。","en":"Seeing the shape of dependence or fear can be the beginning of reclaiming your agency. It is all right to ask for help."},"major":true,"num":15},{"key":"the-tower","name":{"ja":"塔","en":"The Tower"},"kwUp":["崩壊","真実","解放"],"kwRev":["回避","動揺","遅延"],"up":{"ja":"突然の変化は痛みを伴っても、偽りの土台を壊して本当に必要なものを明らかにします。","en":"A sudden change may hurt, yet it can break a false foundation and reveal what is truly needed."},"rev":{"ja":"避けてきた変化が小さな不安として積もっています。安全を確保し、現実的な修正から始めましょう。","en":"A change you have avoided is gathering as quiet unease. Protect your footing and begin with a practical adjustment."},"major":true,"num":16},{"key":"the-star","name":{"ja":"星","en":"The Star"},"kwUp":["希望","導き","純粋さ"],"kwRev":["失望","不安","喪失"],"up":{"ja":"遠くても信じられる希望を持ち、素直な願いを行動に映すことで回復の道が照らされます。","en":"A hope you can trust, even from a distance, becomes a light when sincere wishes find their way into action."},"rev":{"ja":"理想を失ったように感じても、できたことを数え直せば次の光を見つけられます。","en":"Even when an ideal feels lost, counting what you have managed can reveal the next small light."},"major":true,"num":17},{"key":"the-moon","name":{"ja":"月","en":"The Moon"},"kwUp":["幻想","感受性","未知"],"kwRev":["不安解消","真相","混乱"],"up":{"ja":"曖昧な夜の中では結論を急がず、夢や不安が伝える感情を丁寧に観察しましょう。","en":"In an uncertain night, resist rushing to a conclusion and gently observe what dreams and fears are telling you."},"rev":{"ja":"霧が晴れ、隠れていた事実や思い込みに気づける時です。確認できる情報を集めてください。","en":"The mist is lifting, making hidden facts and assumptions easier to notice. Gather information you can confirm."},"major":true,"num":18},{"key":"the-sun","name":{"ja":"太陽","en":"The Sun"},"kwUp":["喜び","成功","生命力"],"kwRev":["過信","曇り","遅れ"],"up":{"ja":"自分らしい明るさを隠さず表現すれば、成功を分かち合う活力と素直な信頼が広がります。","en":"Letting your natural brightness show can spread the energy to share success and build open trust."},"rev":{"ja":"明るく見せることに力を使いすぎています。小さな不調を認めて計画を調整しましょう。","en":"Too much energy is going into looking cheerful. Notice small signs of strain and adjust the plan."},"major":true,"num":19},{"key":"judgement","name":{"ja":"審判","en":"Judgement"},"kwUp":["復活","決断","赦し"],"kwRev":["後悔","停滞","聞き逃し"],"up":{"ja":"過去の経験から呼び戻されたテーマに答え、赦しと決断をもって新しい段階へ進む時です。","en":"It is time to answer a theme called back by past experience and step into a new stage with forgiveness and resolve."},"rev":{"ja":"自分を責め続けると再出発の合図を聞き逃します。学びを受け取り、今できる返答を選びましょう。","en":"Blaming yourself endlessly can make you miss the signal to begin again. Take the lesson and choose the response available now."},"major":true,"num":20},{"key":"the-world","name":{"ja":"世界","en":"The World"},"kwUp":["完成","統合","達成"],"kwRev":["未完","停滞","再調整"],"up":{"ja":"積み重ねてきたものが一つの環となって実を結び、次の旅へ進む準備が整います。","en":"What you have built is coming together as a whole, and you are ready to prepare for the next journey."},"rev":{"ja":"最後の確認を急いで省いているようです。未完の部分を整えれば、安心して節目を迎えられます。","en":"You seem to be skipping a final check in your haste. Tending unfinished details can make the milestone feel secure."},"major":true,"num":21},{"key":"ace-of-wands","name":{"ja":"ワンドのエース","en":"Ace of Wands"},"kwUp":["情熱","着火","創始"],"kwRev":["空回り","遅延","消耗"],"up":{"ja":"胸に生まれた熱を具体的な企画へ移すと、停滞していた行動が勢いよく始まります。","en":"When the spark in your chest becomes a concrete project, stalled action can begin to move with energy."},"rev":{"ja":"やる気はあっても方向が定まりません。小さな試作で熱量の向きを確かめましょう。","en":"The desire is there, but the direction is not yet clear. Test its course with a small prototype."},"major":false,"suit":"wands","rank":"ace"},{"key":"two-of-wands","name":{"ja":"ワンドの2","en":"Two of Wands"},"kwUp":["展望","選択","計画"],"kwRev":["迷い","狭い視野","延期"],"up":{"ja":"今いる場所を越えた展望を描き、複数の道を比べてから次の一歩を計画する時です。","en":"Looking beyond the familiar and weighing your options can give a growing ambition a clear horizon."},"rev":{"ja":"可能性を考えすぎて決められません。期限と優先条件を置いて選択を進めましょう。","en":"Planning has become a substitute for choosing. Compare the risks and take one measured step."},"major":false,"suit":"wands","rank":"2"},{"key":"three-of-wands","name":{"ja":"ワンドの3","en":"Three of Wands"},"kwUp":["拡大","待機","成果"],"kwRev":["遅れ","期待外れ","視野不足"],"up":{"ja":"先に投じた努力が遠くから返ってきます。協力者と結果を待ちながら次の展開を整えましょう。","en":"Work already set in motion can widen your view as you watch for results and prepare the next stage."},"rev":{"ja":"成果を急いで見切るには早すぎます。連絡や物流など見えない進捗を確認してください。","en":"Waiting for a distant result is leaving today's choices unattended. Check what can still be adjusted nearby."},"major":false,"suit":"wands","rank":"3"},{"key":"four-of-wands","name":{"ja":"ワンドの4","en":"Four of Wands"},"kwUp":["祝福","安定","共同体"],"kwRev":["不安定","延期","居場所"],"up":{"ja":"節目を仲間と祝い、安心できる居場所を整えることが次の挑戦を支える力になります。","en":"A shared milestone deserves to be celebrated, and a welcoming base can support what comes next."},"rev":{"ja":"表面上の祝福の裏に未解決の緊張があります。関係者と率直に予定を調整しましょう。","en":"The outward celebration is hiding unresolved tension. Make space for honest conversation before building further."},"major":false,"suit":"wands","rank":"4"},{"key":"five-of-wands","name":{"ja":"ワンドの5","en":"Five of Wands"},"kwUp":["競争","摩擦","刺激"],"kwRev":["対立回避","混乱","消耗戦"],"up":{"ja":"意見の違いは能力を磨く刺激になります。勝敗よりも健全な競争のルールを決めましょう。","en":"Different ideas can sharpen one another when the contest stays open, light, and connected to a shared aim."},"rev":{"ja":"競争が目的化して疲れています。争う必要のない部分を切り分け、協力へ戻してください。","en":"Friction is consuming more energy than the work deserves. Return to the common purpose and soften the competition."},"major":false,"suit":"wands","rank":"5"},{"key":"six-of-wands","name":{"ja":"ワンドの6","en":"Six of Wands"},"kwUp":["勝利","承認","前進"],"kwRev":["驕り","評価不足","敗北感"],"up":{"ja":"努力が認められ、周囲の応援を受けながら自信を持って次の目標へ進める時です。","en":"Recognition for your effort and support from others can give you confidence for the next goal."},"rev":{"ja":"評価を独占しようとすると支援が離れます。協力者への感謝を言葉にしましょう。","en":"Trying to keep all the credit can make support recede. Let your collaborators know they matter."},"major":false,"suit":"wands","rank":"6"},{"key":"seven-of-wands","name":{"ja":"ワンドの7","en":"Seven of Wands"},"kwUp":["防衛","信念","優位"],"kwRev":["圧力","疲弊","譲歩"],"up":{"ja":"築いた立場を守るため、周囲の圧力に流されず自分の信念を明確に示しましょう。","en":"Holding your ground may ask you to state your values clearly without being swept along by outside pressure."},"rev":{"ja":"守り続けて余力を失っています。本当に譲れない一点を選び、他は交渉しましょう。","en":"Constant defense is draining your reserves. Choose the one point that matters most and negotiate the rest."},"major":false,"suit":"wands","rank":"7"},{"key":"eight-of-wands","name":{"ja":"ワンドの8","en":"Eight of Wands"},"kwUp":["速度","連絡","進展"],"kwRev":["停滞","誤送信","焦燥"],"up":{"ja":"連絡と出来事が一気に動く時です。迷いを減らし、決めた方向へ素早く手を伸ばしましょう。","en":"Messages and events are moving quickly, so reducing hesitation can help you reach toward the chosen direction."},"rev":{"ja":"急ぐほど確認漏れが増えます。送信や移動の前に要点を一度見直してください。","en":"The faster you go, the easier it is to miss a check. Review the essentials before sending or moving."},"major":false,"suit":"wands","rank":"8"},{"key":"nine-of-wands","name":{"ja":"ワンドの9","en":"Nine of Wands"},"kwUp":["持久力","警戒","経験"],"kwRev":["疲労","疑念","防衛過剰"],"up":{"ja":"これまでの経験が最後の山を越える備えになります。警戒心を知恵として使い、歩みを止めないでください。","en":"Experience has prepared you for the last rise. Let caution serve as wisdom while you keep moving."},"rev":{"ja":"傷つくことを恐れて全てを拒んでいます。必要な休息を取り、信頼できる範囲から再開しましょう。","en":"Fear of being hurt has turned into refusing everything. Rest where needed and resume within a trusted boundary."},"major":false,"suit":"wands","rank":"9"},{"key":"ten-of-wands","name":{"ja":"ワンドの10","en":"Ten of Wands"},"kwUp":["責任","負担","達成"],"kwRev":["過労","放棄","圧迫"],"up":{"ja":"成果を運ぶ責任が増えています。役割を分担して最後まで運べば、大きな達成感につながります。","en":"Responsibility for carrying the results has grown. Sharing the roles can help you bring the work to a satisfying close."},"rev":{"ja":"抱え込んだ仕事が身体と心を圧迫しています。期限を共有し、不要な荷物を下ろしましょう。","en":"Work you have kept to yourself is pressing on body and mind. Share the deadline and set down what is not essential."},"major":false,"suit":"wands","rank":"10"},{"key":"page-of-wands","name":{"ja":"ワンドのペイジ","en":"Page of Wands"},"kwUp":["好奇心","知らせ","冒険"],"kwRev":["未熟","気まぐれ","失言"],"up":{"ja":"新しい知らせや学びへの好奇心が、未知の分野へ踏み出す軽やかなきっかけになります。","en":"Curiosity about a new message or lesson can offer a light first step into unfamiliar territory."},"rev":{"ja":"思いつきをすぐ口にすると誤解を生みます。調べてから、責任を持てる言葉で伝えましょう。","en":"Speaking an idea too quickly may create confusion. Look into it first, then describe it with care."},"major":false,"suit":"wands","rank":"page"},{"key":"knight-of-wands","name":{"ja":"ワンドのナイト","en":"Knight of Wands"},"kwUp":["行動","情熱","突破"],"kwRev":["衝動","短気","空約束"],"up":{"ja":"熱意を行動へ変える大胆さがあります。勢いを計画と組み合わせれば難所を突破できます。","en":"You have the boldness to turn enthusiasm into action, and a plan can help that energy cross a difficult stretch."},"rev":{"ja":"気持ちが先走り、約束を守る余力を越えています。速度より継続可能性を選びましょう。","en":"Your feelings are running ahead of what you can promise. Favor a pace you can keep."},"major":false,"suit":"wands","rank":"knight"},{"key":"queen-of-wands","name":{"ja":"ワンドのクイーン","en":"Queen of Wands"},"kwUp":["魅力","自信","創造"],"kwRev":["嫉妬","気分屋","支配"],"up":{"ja":"自分の情熱を堂々と表現する姿が人を惹きつけ、創造的な場に温かな活気をもたらします。","en":"Expressing your passion with confidence can draw people in and warm a creative space."},"rev":{"ja":"他人の輝きと自分を比べています。自分の得意な表現を育てることに意識を戻しましょう。","en":"You are comparing your light with someone else's. Return your attention to the form of expression that is yours."},"major":false,"suit":"wands","rank":"queen"},{"key":"king-of-wands","name":{"ja":"ワンドのキング","en":"King of Wands"},"kwUp":["指導力","展望","起業"],"kwRev":["独断","短絡","横暴"],"up":{"ja":"大きな構想を示し、人を鼓舞する指導力で情熱を成果へ導くタイミングです。","en":"A broad vision and the ability to inspire others can guide passion toward a meaningful result."},"rev":{"ja":"理想を急いで他人に押しつけています。実行する人の現実的な意見を計画へ取り入れましょう。","en":"You are pressing your ideal onto others too quickly. Let the people doing the work shape the plan with practical insight."},"major":false,"suit":"wands","rank":"king"},{"key":"ace-of-cups","name":{"ja":"カップのエース","en":"Ace of Cups"},"kwUp":["愛情","癒し","始まり"],"kwRev":["空虚","抑圧","失望"],"up":{"ja":"心が満たされる新しい関係や創作が始まります。湧いた感情を素直に受け取りましょう。","en":"A new relationship or creative beginning can fill the heart. Let the feeling that has arisen be received honestly."},"rev":{"ja":"感情を閉じ込めて心が乾いています。小さな喜びを受け入れる練習から始めてください。","en":"Keeping emotion contained has left the heart dry. Begin by making room for one small pleasure."},"major":false,"suit":"cups","rank":"ace"},{"key":"two-of-cups","name":{"ja":"カップの2","en":"Two of Cups"},"kwUp":["結びつき","相互理解","契約"],"kwRev":["不釣り合い","緊張","別離"],"up":{"ja":"互いの気持ちを確かめる対話が、対等で誠実な関係や協力関係を育てます。","en":"A conversation that checks both people's feelings can nurture an equal and sincere bond or partnership."},"rev":{"ja":"一方だけが合わせ続けています。期待と条件を言葉にして関係の釣り合いを整えましょう。","en":"One side has been doing all the adjusting. Put expectations and conditions into words and restore balance."},"major":false,"suit":"cups","rank":"2"},{"key":"three-of-cups","name":{"ja":"カップの3","en":"Three of Cups"},"kwUp":["友情","祝宴","共有"],"kwRev":["過剰","孤立","噂"],"up":{"ja":"仲間と喜びを分かち合うことで、努力を続けるための支えと豊かなつながりが生まれます。","en":"Sharing joy with companions can create the connection and support that keep an effort alive."},"rev":{"ja":"楽しい集まりが浪費や噂話に傾いています。距離を置く時間も大切にしましょう。","en":"A pleasant gathering is drifting toward waste or gossip. Time apart can be valuable too."},"major":false,"suit":"cups","rank":"3"},{"key":"four-of-cups","name":{"ja":"カップの4","en":"Four of Cups"},"kwUp":["倦怠","内省","再評価"],"kwRev":["気づき","受容","再参加"],"up":{"ja":"目の前の提案に心が動かない時は、何を本当に望んでいるかを静かに再評価しましょう。","en":"When an offer in front of you does not stir the heart, quietly reconsider what you truly want."},"rev":{"ja":"閉じていた心に新しい選択肢が見え始めています。小さな誘いから応じてみましょう。","en":"A new option is beginning to show through a closed heart. Try responding to a small invitation."},"major":false,"suit":"cups","rank":"4"},{"key":"five-of-cups","name":{"ja":"カップの5","en":"Five of Cups"},"kwUp":["喪失","後悔","悲嘆"],"kwRev":["回復","受容","再出発"],"up":{"ja":"失ったものを悼む時間が必要です。それでも残っているつながりに目を向ければ再起の道が見えます。","en":"There is a need to grieve what was lost, yet the connections that remain can still point toward a new beginning."},"rev":{"ja":"悲しみを認めながら、少しずつ未来へ顔を上げられる時です。助けを受け取ってください。","en":"You can look toward the future little by little while honoring the sadness. Let support reach you."},"major":false,"suit":"cups","rank":"5"},{"key":"six-of-cups","name":{"ja":"カップの6","en":"Six of Cups"},"kwUp":["郷愁","純真","贈り物"],"kwRev":["過去執着","未熟","前進"],"up":{"ja":"過去の思い出や素直な優しさが、今の心を癒し人との信頼を取り戻す助けになります。","en":"Memories and uncomplicated kindness can soothe the present heart and help rebuild trust with others."},"rev":{"ja":"懐かしさに留まりすぎると現在の機会を逃します。思い出を力に変えて一歩進みましょう。","en":"Staying too long in nostalgia can hide a present opportunity. Let memory give you strength for one step forward."},"major":false,"suit":"cups","rank":"6"},{"key":"seven-of-cups","name":{"ja":"カップの7","en":"Seven of Cups"},"kwUp":["幻想","選択肢","想像"],"kwRev":["現実化","決断","誘惑退け"],"up":{"ja":"魅力的な可能性が多い時ほど、夢と現実を見比べて本当に育てたい一つを選びましょう。","en":"The more possibilities appear, the more useful it is to compare dream with reality and choose one to truly cultivate."},"rev":{"ja":"霧が晴れて、実行できる選択肢が絞られます。誘惑より具体的な計画を優先してください。","en":"The haze is clearing and practical options are narrowing. Give a concrete plan more weight than temptation."},"major":false,"suit":"cups","rank":"7"},{"key":"eight-of-cups","name":{"ja":"カップの8","en":"Eight of Cups"},"kwUp":["離脱","探求","手放し"],"kwRev":["停滞","未練","回避"],"up":{"ja":"満たされなくなった場所から静かに離れ、より深い意味を求める旅へ向かう時です。","en":"It may be time to leave a place that no longer fulfills you and seek a deeper meaning elsewhere."},"rev":{"ja":"去るべきものへの未練が足を止めています。恐れを認めたうえで期限を決めて動きましょう。","en":"Longing for what should be left behind is holding your feet. Acknowledge the fear and give yourself a date to move."},"major":false,"suit":"cups","rank":"8"},{"key":"nine-of-cups","name":{"ja":"カップの9","en":"Nine of Cups"},"kwUp":["満足","願望成就","快楽"],"kwRev":["貪欲","不満","過信"],"up":{"ja":"望んでいた成果を味わい、自分が得たものに感謝することが次の願いを育てます。","en":"Savoring the result you wished for and appreciating what you have can nourish the next wish."},"rev":{"ja":"手に入れた後も満たされないなら、欲しいものの意味を見直す必要があります。","en":"If having something has not brought contentment, its meaning may deserve another look."},"major":false,"suit":"cups","rank":"9"},{"key":"ten-of-cups","name":{"ja":"カップの10","en":"Ten of Cups"},"kwUp":["幸福","家族","調和"],"kwRev":["不和","理想崩れ","孤独"],"up":{"ja":"心から安心できる人々と喜びを分かち合い、長く続く幸福の風景を一緒に描けます。","en":"With people who bring genuine ease, you can share joy and imagine a happiness that continues."},"rev":{"ja":"理想の家族像に合わせようとして息苦しくなっています。小さな本音から関係を整えましょう。","en":"Trying to fit an ideal family picture is making life tight. Start restoring the bond with one small truth."},"major":false,"suit":"cups","rank":"10"},{"key":"page-of-cups","name":{"ja":"カップのペイジ","en":"Page of Cups"},"kwUp":["感受性","知らせ","想像力"],"kwRev":["夢見","未熟","気分変化"],"up":{"ja":"柔らかな感性が思いがけない知らせや創作の種を受け取ります。心の声を大切にしましょう。","en":"A tender sensitivity can receive an unexpected message or the seed of a creative work. Make room for your inner voice."},"rev":{"ja":"感情に振り回されて現実の確認を忘れています。感じたことと事実を分けて扱いましょう。","en":"Emotion is pulling your attention away from checking reality. Keep feeling and fact distinct."},"major":false,"suit":"cups","rank":"page"},{"key":"knight-of-cups","name":{"ja":"カップのナイト","en":"Knight of Cups"},"kwUp":["ロマンス","提案","理想"],"kwRev":["気まぐれ","幻想","失望"],"up":{"ja":"思いやりのある提案や告白が、理想を現実の関係へ運ぶ優雅な一歩になります。","en":"A considerate offer or confession can carry an ideal into a graceful first step in a real relationship."},"rev":{"ja":"美しい言葉だけで判断すると失望します。約束を支える具体的な行動を確かめましょう。","en":"Beautiful words alone can disappoint. Look for the concrete action that supports the promise."},"major":false,"suit":"cups","rank":"knight"},{"key":"queen-of-cups","name":{"ja":"カップのクイーン","en":"Queen of Cups"},"kwUp":["共感","直感","慈愛"],"kwRev":["依存","境界不足","感情過多"],"up":{"ja":"人の気持ちを深く受け止める共感力があります。自分の心も同じように丁寧に扱いましょう。","en":"You can receive another person's feelings deeply. Offer your own heart the same careful attention."},"rev":{"ja":"相手の感情を背負いすぎています。助けることと引き受けることの境界を定めてください。","en":"You are carrying too much of someone else's emotion. Distinguish between helping and taking it on."},"major":false,"suit":"cups","rank":"queen"},{"key":"king-of-cups","name":{"ja":"カップのキング","en":"King of Cups"},"kwUp":["成熟","包容力","安定"],"kwRev":["抑圧","操作","冷淡"],"up":{"ja":"豊かな感情を落ち着いて扱い、思いやりと判断力を両立させる姿が周囲を安心させます。","en":"Handling deep feeling calmly while joining compassion with judgment can make others feel safe."},"rev":{"ja":"感情を管理しすぎて本音が伝わりません。支配ではなく率直さで関係を築きましょう。","en":"Managing emotion too tightly keeps your true thoughts from being heard. Build the bond through candor rather than control."},"major":false,"suit":"cups","rank":"king"},{"key":"ace-of-swords","name":{"ja":"ソードのエース","en":"Ace of Swords"},"kwUp":["真実","決断","明晰"],"kwRev":["混乱","誤解","残酷"],"up":{"ja":"曖昧さを断ち切る新しい洞察が生まれます。真実を見据え、必要な決断を明確にしましょう。","en":"A fresh insight can cut through uncertainty. Face the truth and make the necessary choice clear."},"rev":{"ja":"言葉が鋭くなりすぎています。正しさだけでなく相手への配慮を添えて伝えてください。","en":"Your words have grown too sharp. Let consideration accompany what is correct."},"major":false,"suit":"swords","rank":"ace"},{"key":"two-of-swords","name":{"ja":"ソードの2","en":"Two of Swords"},"kwUp":["保留","均衡","選択"],"kwRev":["決裂","情報不足","動揺"],"up":{"ja":"感情に飲まれず情報を集め、二つの選択を静かに比べるための保留が役に立ちます。","en":"Gathering information and quietly weighing two choices can make a pause useful rather than fearful."},"rev":{"ja":"決めないことが緊張を長引かせています。不足している情報を一つ特定して確認しましょう。","en":"Not choosing is extending the tension. Identify one missing piece of information and check it."},"major":false,"suit":"swords","rank":"2"},{"key":"three-of-swords","name":{"ja":"ソードの3","en":"Three of Swords"},"kwUp":["心痛","真実","分離"],"kwRev":["回復","赦し","痛みの再燃"],"up":{"ja":"厳しい事実や別れを認めることが、傷を隠さず癒し始めるための誠実な入口になります。","en":"Acknowledging a hard fact or separation can be an honest beginning to healing without hiding the wound."},"rev":{"ja":"痛みから回復する兆しがあります。過去を繰り返し裁かず、必要な距離を保ちましょう。","en":"There are signs of recovery from pain. Do not keep judging the past; allow the distance you need."},"major":false,"suit":"swords","rank":"3"},{"key":"four-of-swords","name":{"ja":"ソードの4","en":"Four of Swords"},"kwUp":["休息","回復","静寂"],"kwRev":["再始動","焦燥","休めない"],"up":{"ja":"思考を休ませる静かな時間が、疲れた判断力を回復させ次の行動への準備を整えます。","en":"Quiet time for the mind can restore tired judgment and prepare the next action."},"rev":{"ja":"止まることへの不安から無理に動いています。短い休息を予定に入れ直しましょう。","en":"You are moving because stopping feels frightening. Put a short period of rest back on the schedule."},"major":false,"suit":"swords","rank":"4"},{"key":"five-of-swords","name":{"ja":"ソードの5","en":"Five of Swords"},"kwUp":["敗北","対立","勝利の代償"],"kwRev":["和解","後悔","緊張解除"],"up":{"ja":"勝ち負けにこだわるほど関係に代償が残ります。何を守る争いなのかを問い直しましょう。","en":"The more you cling to winning, the greater the cost to the relationship. Ask what the conflict is meant to protect."},"rev":{"ja":"争いの後始末と和解に向けて動ける時です。面子よりも今後の信頼を選びましょう。","en":"This is a time to repair the aftermath and move toward peace. Choose future trust over saving face."},"major":false,"suit":"swords","rank":"5"},{"key":"six-of-swords","name":{"ja":"ソードの6","en":"Six of Swords"},"kwUp":["移行","旅","回復"],"kwRev":["停滞","荷物","帰還"],"up":{"ja":"騒がしい場所から距離を取り、必要な知恵だけを携えて穏やかな状況へ移る時です。","en":"Distance from a noisy place can help you carry only the wisdom you need toward calmer ground."},"rev":{"ja":"環境を変えても古い考えを運んでいます。何を置いていくかを言葉にしてみましょう。","en":"A change of setting has not left old ideas behind. Try naming what you are willing to leave."},"major":false,"suit":"swords","rank":"6"},{"key":"seven-of-swords","name":{"ja":"ソードの7","en":"Seven of Swords"},"kwUp":["策略","独立","秘密"],"kwRev":["露見","正直さ","計画失敗"],"up":{"ja":"正面衝突を避ける知恵が必要ですが、誰にも話せない計画には誠実さの点検が欠かせません。","en":"Wisdom may call for avoiding a direct clash, yet a plan that cannot be shared deserves an honest review."},"rev":{"ja":"隠していたことが明らかになります。言い訳よりも事実を認めて再計画しましょう。","en":"What was hidden is coming to light. Admit the facts and make a new plan rather than defending the story."},"major":false,"suit":"swords","rank":"7"},{"key":"eight-of-swords","name":{"ja":"ソードの8","en":"Eight of Swords"},"kwUp":["制限","思い込み","閉塞"],"kwRev":["解放","視野","自立"],"up":{"ja":"動けない原因の一部は外ではなく自分の思い込みです。小さな選択から拘束をほどきましょう。","en":"Part of what keeps you still may be a belief of your own rather than an outside wall. Loosen it through a small choice."},"rev":{"ja":"自分を縛っていた考えに気づき、助けを受けながら行動の自由を取り戻せます。","en":"You can see the thought that bound you and regain freedom of action with appropriate support."},"major":false,"suit":"swords","rank":"8"},{"key":"nine-of-swords","name":{"ja":"ソードの9","en":"Nine of Swords"},"kwUp":["不安","悪夢","後悔"],"kwRev":["回復","相談","恐れの軽減"],"up":{"ja":"夜に膨らむ不安を一人で現実と同一視せず、心配事を書き出して助けを求めましょう。","en":"Do not mistake fears that grow at night for the whole of reality. Write down the worry and let someone help hold it."},"rev":{"ja":"長く抱えた恐れを言葉にすることで、少しずつ重さが軽くなります。眠りと安心を優先してください。","en":"Giving long-held fear a name can make it lighter. Give sleep and a sense of safety their due."},"major":false,"suit":"swords","rank":"9"},{"key":"ten-of-swords","name":{"ja":"ソードの10","en":"Ten of Swords"},"kwUp":["終局","底","解放"],"kwRev":["再生","回復","終わりの拒否"],"up":{"ja":"痛みを伴う局面は終わりに近づいています。これ以上同じ戦いを続けず、再生の余地を作りましょう。","en":"A painful chapter is nearing its end. Make room for renewal rather than continuing the same struggle."},"rev":{"ja":"終局を認める準備が整い、傷から立ち上がる兆しがあります。過去の役割を手放してください。","en":"You are ready to acknowledge the ending and begin rising from the wound. Release the role that belonged to the past."},"major":false,"suit":"swords","rank":"10"},{"key":"page-of-swords","name":{"ja":"ソードのペイジ","en":"Page of Swords"},"kwUp":["観察","警戒","知らせ"],"kwRev":["詮索","散漫","攻撃的発言"],"up":{"ja":"鋭い観察力と学ぶ姿勢が、複雑な情報の中から真実を見分ける助けになります。","en":"Sharp observation and a willingness to learn can help you distinguish truth within complicated information."},"rev":{"ja":"疑い深さが相手を傷つけています。推測を事実のように扱わず、直接確認しましょう。","en":"Suspicion is hurting someone. Do not treat a guess as fact; ask directly."},"major":false,"suit":"swords","rank":"page"},{"key":"knight-of-swords","name":{"ja":"ソードのナイト","en":"Knight of Swords"},"kwUp":["迅速","論戦","突破"],"kwRev":["無謀","攻撃","焦り"],"up":{"ja":"明確な理論と決断の速さで、長く停滞した問題へ切り込む力が高まっています。","en":"Clear reasoning and swift decisions can help you enter a problem that has been stalled for too long."},"rev":{"ja":"正しさを武器にすると味方まで傷つきます。急ぐ前に目的と影響を確認してください。","en":"Using correctness as a weapon can wound allies too. Check purpose and impact before you hurry."},"major":false,"suit":"swords","rank":"knight"},{"key":"queen-of-swords","name":{"ja":"ソードのクイーン","en":"Queen of Swords"},"kwUp":["独立","洞察","境界"],"kwRev":["冷酷","孤立","批判"],"up":{"ja":"経験に裏打ちされた洞察で不要なものを切り分け、誠実で明確な境界を保てます。","en":"Experience-backed insight can separate what is unnecessary while keeping a clear and honest boundary."},"rev":{"ja":"傷つかないために心を閉ざしています。厳しさの中にも相手を理解する余地を残しましょう。","en":"You are closing your heart to avoid being hurt. Leave some room to understand the other person."},"major":false,"suit":"swords","rank":"queen"},{"key":"king-of-swords","name":{"ja":"ソードのキング","en":"King of Swords"},"kwUp":["知性","公正","権威"],"kwRev":["独裁","冷淡","乱用"],"up":{"ja":"知性と公正さをもって判断し、感情に偏らないルールで状況を導く力があります。","en":"Intelligence and fairness can guide a situation through rules that are not bent by emotion."},"rev":{"ja":"知識や立場を相手の支配に使っています。説明責任を果たし、対話の扉を開いてください。","en":"Knowledge or status is being used to control another person. Offer accountability and keep the door to dialogue open."},"major":false,"suit":"swords","rank":"king"},{"key":"ace-of-pentacles","name":{"ja":"ペンタクルのエース","en":"Ace of Pentacles"},"kwUp":["機会","資源","安定"],"kwRev":["機会損失","浪費","不安定"],"up":{"ja":"手に取れる仕事や資源の機会が届きます。小さくても確実に育つ土台として扱いましょう。","en":"A tangible opportunity involving work or resources is arriving. Treat it as a small but dependable foundation."},"rev":{"ja":"魅力的な話でも条件の確認が不足しています。予算と期限を見直してから始めてください。","en":"An appealing offer has not been checked closely enough. Review its limits and timing before beginning."},"major":false,"suit":"pentacles","rank":"ace"},{"key":"two-of-pentacles","name":{"ja":"ペンタクルの2","en":"Two of Pentacles"},"kwUp":["適応","両立","循環"],"kwRev":["過負荷","不均衡","優先迷い"],"up":{"ja":"複数の役割を軽やかに調整し、変化する状況に合わせて資源を循環させられます。","en":"You can adjust several roles lightly and keep resources moving as circumstances change."},"rev":{"ja":"同時に抱えすぎて大切なものを落としています。優先順位を一つ決めて負荷を下げましょう。","en":"Too much is being carried at once and something important is slipping. Set one priority and lower the load."},"major":false,"suit":"pentacles","rank":"2"},{"key":"three-of-pentacles","name":{"ja":"ペンタクルの3","en":"Three of Pentacles"},"kwUp":["技能","協働","評価"],"kwRev":["未熟","連携不足","低評価"],"up":{"ja":"専門性を持つ仲間と技術を磨き合えば、丁寧な仕事が形になり評価へつながります。","en":"Working with skilled companions can turn careful craft into something recognized and useful."},"rev":{"ja":"一人で完成させようとして品質が下がっています。役割と基準を共有して協力しましょう。","en":"Quality is falling because you are trying to finish alone. Share the roles and the standard."},"major":false,"suit":"pentacles","rank":"3"},{"key":"four-of-pentacles","name":{"ja":"ペンタクルの4","en":"Four of Pentacles"},"kwUp":["保守","所有","安定"],"kwRev":["執着","閉鎖","散財"],"up":{"ja":"築いた資源を守る慎重さが、次の計画を支える安心と安定を生みます。","en":"Careful protection of what you have built can provide the steadiness that supports the next plan."},"rev":{"ja":"失う恐れからお金や感情を抱え込み、流れを止めています。必要な範囲で分かち合いましょう。","en":"Fear of loss is making you hold money or feeling too tightly. Share within a sensible boundary."},"major":false,"suit":"pentacles","rank":"4"},{"key":"five-of-pentacles","name":{"ja":"ペンタクルの5","en":"Five of Pentacles"},"kwUp":["困窮","孤立","試練"],"kwRev":["回復","支援","改善"],"up":{"ja":"不足を一人で恥じる必要はありません。周囲の支援に気づけば困難を越える道が開きます。","en":"There is no need to be ashamed of lacking something alone. Seeing available support can reveal a way through difficulty."},"rev":{"ja":"支援を受け入れて生活を立て直せる時です。小さな改善を積み重ねてください。","en":"You can accept support and rebuild your footing. Let small improvements accumulate."},"major":false,"suit":"pentacles","rank":"5"},{"key":"six-of-pentacles","name":{"ja":"ペンタクルの6","en":"Six of Pentacles"},"kwUp":["援助","均衡","分配"],"kwRev":["不公平","負債","条件付き"],"up":{"ja":"与えることと受け取ることの釣り合いを整えれば、資源が必要な場所へ健やかに届きます。","en":"A fair balance between giving and receiving lets resources reach where they are needed with care."},"rev":{"ja":"援助に隠れた条件や力関係を確認しましょう。対等な合意へ調整することが大切です。","en":"Look closely at conditions or power hidden inside an offer of help. Adjust toward an agreement that respects both sides."},"major":false,"suit":"pentacles","rank":"6"},{"key":"seven-of-pentacles","name":{"ja":"ペンタクルの7","en":"Seven of Pentacles"},"kwUp":["評価","忍耐","投資"],"kwRev":["焦り","収穫不足","方向転換"],"up":{"ja":"時間をかけて育てたものを評価し、成果を急がず投資の方向を見直す時です。","en":"Review what has been growing over time and reconsider its direction without demanding an immediate harvest."},"rev":{"ja":"努力の割に実りが少なく感じます。続けるものと切り替えるものを冷静に分けましょう。","en":"The return feels small beside the effort. Separate what is worth continuing from what wants a new direction."},"major":false,"suit":"pentacles","rank":"7"},{"key":"eight-of-pentacles","name":{"ja":"ペンタクルの8","en":"Eight of Pentacles"},"kwUp":["修練","勤勉","熟練"],"kwRev":["単調","手抜き","停滞"],"up":{"ja":"一つの技能を繰り返し磨く真摯な姿勢が、信頼される専門性と安定した成果を作ります。","en":"A sincere habit of refining one skill can build trusted expertise and steady results."},"rev":{"ja":"忙しさで作業が惰性になっています。基本へ戻り、品質を確認する時間を設けましょう。","en":"Busyness has turned the work automatic. Return to the basics and make time to check quality."},"major":false,"suit":"pentacles","rank":"8"},{"key":"nine-of-pentacles","name":{"ja":"ペンタクルの9","en":"Nine of Pentacles"},"kwUp":["自立","豊かさ","成果"],"kwRev":["依存","浪費","孤独"],"up":{"ja":"自分の努力で得た豊かさを味わい、他人の評価に頼らない満足と自立を育てる時です。","en":"Enjoying what your own effort has made can grow contentment and independence beyond other people's approval."},"rev":{"ja":"豊かに見せることにお金や力を使いすぎています。自分に本当に必要な安心を考えましょう。","en":"Too much energy is going into appearing prosperous. Consider what kind of security you actually need."},"major":false,"suit":"pentacles","rank":"9"},{"key":"ten-of-pentacles","name":{"ja":"ペンタクルの10","en":"Ten of Pentacles"},"kwUp":["遺産","繁栄","家系"],"kwRev":["不安定","損失","世代対立"],"up":{"ja":"長く積み上げた資産や知恵を次の世代へ渡し、持続する繁栄の仕組みを整えられます。","en":"Passing hard-won resources and wisdom to the next generation can create lasting prosperity."},"rev":{"ja":"家族や組織の古い価値観が重荷になっています。守るものと更新するものを話し合いましょう。","en":"Old values in a family or organization have become a burden. Discuss what to preserve and what to renew."},"major":false,"suit":"pentacles","rank":"10"},{"key":"page-of-pentacles","name":{"ja":"ペンタクルのペイジ","en":"Page of Pentacles"},"kwUp":["学習","実務","好機"],"kwRev":["怠慢","非現実","機会逃し"],"up":{"ja":"現実的な学びや仕事の知らせが届きます。小さな課題を丁寧にこなすほど将来の力になります。","en":"A practical lesson or work opportunity may arrive. Care with small tasks can become strength for the future."},"rev":{"ja":"夢を語るだけで基礎練習を避けています。まず期限と学習手順を決めてください。","en":"You are talking about a dream while avoiding its basic practice. Set a deadline and a way to learn."},"major":false,"suit":"pentacles","rank":"page"},{"key":"knight-of-pentacles","name":{"ja":"ペンタクルのナイト","en":"Knight of Pentacles"},"kwUp":["堅実","責任","継続"],"kwRev":["停滞","頑固","退屈"],"up":{"ja":"派手さよりも約束を守る継続力が、ゆっくりでも確実な成果と信頼を築きます。","en":"Steady faithfulness to a promise can build dependable results and trust, even without spectacle."},"rev":{"ja":"慎重さが変化への拒否になっています。安全を保ちながら一つ新しい方法を試しましょう。","en":"Caution has become refusal of change. Keep your safety while trying one new method."},"major":false,"suit":"pentacles","rank":"knight"},{"key":"queen-of-pentacles","name":{"ja":"ペンタクルのクイーン","en":"Queen of Pentacles"},"kwUp":["実用性","養育","豊かさ"],"kwRev":["過保護","不安","自己軽視"],"up":{"ja":"生活の細部を整え、人と資源を現実的に育てる温かな知恵が周囲の安心を支えます。","en":"Warm practical wisdom in caring for daily details, people, and resources can support everyone's ease."},"rev":{"ja":"世話を焼きすぎて自分の余力がありません。まず自分の身体と予算を守りましょう。","en":"There is no reserve left because you are tending everyone else. Protect your own body and budget first."},"major":false,"suit":"pentacles","rank":"queen"},{"key":"king-of-pentacles","name":{"ja":"ペンタクルのキング","en":"King of Pentacles"},"kwUp":["成功","経営","信頼"],"kwRev":["強欲","停滞","所有欲"],"up":{"ja":"経験と資源を堅実に運用し、長期的な価値を生む責任ある成功へ導けます。","en":"Steady handling of experience and resources can lead to responsible success with lasting value."},"rev":{"ja":"利益や所有が目的になり、人との信頼を損ねています。豊かさを分かち合う計画を持ちましょう。","en":"Profit or ownership has become the goal and trust is suffering. Make room for a plan that shares abundance."},"major":false,"suit":"pentacles","rank":"king"}]/*CARDS-END*/;
+
+const STR = {
+  ja: {
+    sub: "ライダー・ウェイト版 78枚",
+    one: "今日の一枚",
+    oneSub: "その日のカードを1枚引く",
+    three: "3枚引き",
+    threeSub: "過去・現在・未来",
+    past: "過去", present: "現在", future: "未来", today: "今日の一枚",
+    upright: "正位置", reversed: "逆位置",
+    revealAll: "すべて開く",
+    tapHint: "カードをタップすると開きます",
+    history: "履歴",
+    clear: "履歴を消す",
+    clearConfirm: "履歴をすべて消しますか？",
+    noHistory: "まだ履歴がありません。カードを引くとここに残ります。",
+    disclaimer: "この占いはエンターテインメントを目的としたものです。結果は参考としてお楽しみください。",
+    footNote: "解釈はライダー・ウェイト・スミス版の伝統的な意味に基づきます。履歴はこの端末の中にだけ保存されます。"
+  },
+  en: {
+    sub: "Rider–Waite–Smith · 78 cards",
+    one: "Card of the Day",
+    oneSub: "Draw one card for today",
+    three: "Three-Card Draw",
+    threeSub: "Past · Present · Future",
+    past: "Past", present: "Present", future: "Future", today: "Card of the Day",
+    upright: "Upright", reversed: "Reversed",
+    revealAll: "Reveal all",
+    tapHint: "Tap a card to reveal it",
+    history: "History",
+    clear: "Clear history",
+    clearConfirm: "Clear all history?",
+    noHistory: "No readings yet. Your draws will be saved here.",
+    disclaimer: "This reading is for entertainment purposes only. Please enjoy the results as a light reference.",
+    footNote: "Interpretations follow the traditional Rider–Waite–Smith meanings. History is stored only on this device."
+  }
+};
+
+const LANG_KEY = "magi.tarot.lang";
+const HIST_KEY = "magi.tarot.history.v1";
+const ROMAN = ["0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI"];
+const SUIT_SVG = {
+  wands: '<svg viewBox="0 0 24 24" fill="none" stroke="#372c66" stroke-width="1.7" stroke-linecap="round"><path d="M7 19 L16.5 6.5"/><circle cx="17.5" cy="5" r="1.7" fill="#c9a227" stroke="none"/><path d="M15 3.2 l.9-1.4 M18.6 3.4 l1.5-.8 M19 6.4 l1.6.2"/></svg>',
+  cups: '<svg viewBox="0 0 24 24" fill="none" stroke="#372c66" stroke-width="1.7" stroke-linecap="round"><path d="M5 4 h14 c0 4.8-2.9 7.6-7 7.6 C7.9 11.6 5 8.8 5 4 Z"/><path d="M12 11.6 V17"/><path d="M8 20 h8"/><path d="M9.5 17 h5"/></svg>',
+  swords: '<svg viewBox="0 0 24 24" fill="none" stroke="#372c66" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.5 L14 13.5 H10 Z"/><path d="M6.5 16 h11"/><path d="M12 16 v3.4"/><circle cx="12" cy="20.6" r="1.1" fill="#c9a227" stroke="none"/></svg>',
+  pentacles: '<svg viewBox="0 0 24 24" fill="none" stroke="#372c66" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 6.6 l1.65 3.35 3.7.54-2.68 2.6.64 3.68L12 15.05l-3.31 1.72.64-3.68-2.68-2.6 3.7-.54 Z" fill="#c9a227" fill-opacity=".25"/></svg>'
+};
+const RANK_PIPS = {ace:1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10};
+
+let lang = localStorage.getItem(LANG_KEY) || ((navigator.language || "ja").startsWith("en") ? "en" : "ja");
+if (!STR[lang]) lang = "ja";
+let current = null;      // {mode, cards:[{key,rev}], fromHistory:boolean, saved:boolean}
+let flippedCount = 0;
+
+const $ = (s) => document.querySelector(s);
+const byKey = (key) => CARDS.find((c) => c.key === key);
+
+function hashStr(s){ let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(seed){ return function(){ seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function cryptoRand(){ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; }
+
+function positionsFor(mode){ return mode === "one" ? ["today"] : ["past","present","future"]; }
+
+function drawOne(){
+  const d = new Date();
+  const dayStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  const rng = mulberry32(hashStr("magi-tarot:" + dayStr));
+  const idx = Math.floor(rng() * CARDS.length);
+  const rev = rng() < 0.5;
+  return { mode:"one", cards:[{key: CARDS[idx].key, rev}], fromHistory:false, saved:false };
+}
+function drawThree(){
+  const pool = CARDS.map((c) => c.key);
+  for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(cryptoRand() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return { mode:"three", cards: pool.slice(0,3).map((key) => ({key, rev: cryptoRand() < 0.5})), fromHistory:false, saved:false };
+}
+
+function artHTML(card){
+  if (card.major){
+    return '<div class="numeral">' + ROMAN[card.num] + '</div>'
+      + '<div class="hero"><span class="big-glyph">✦</span></div>'
+      + '<div class="card-name">' + escapeHTML(card.name[lang]) + '</div>'
+      + '<div class="card-name-en">' + escapeHTML(card.name[lang === "ja" ? "en" : "ja"]) + '</div>';
+  }
+  const pips = RANK_PIPS[card.rank];
+  let hero;
+  if (pips){
+    const cols = pips <= 2 ? pips : pips <= 6 ? 3 : pips <= 8 ? 4 : 5;
+    hero = '<div class="hero"><div class="pips" style="grid-template-columns:repeat(' + cols + ',1fr)">' + SUIT_SVG[card.suit].repeat(pips) + '</div></div>';
+  } else {
+    hero = '<div class="hero">' + SUIT_SVG[card.suit].replace("<svg ", '<svg class="suit-big" ') + '</div>';
+  }
+  return '<div class="numeral">' + escapeHTML(rankLabel(card)) + '</div>'
+    + hero
+    + '<div class="card-name">' + escapeHTML(card.name[lang]) + '</div>'
+    + '<div class="card-name-en">' + escapeHTML(card.name[lang === "ja" ? "en" : "ja"]) + '</div>';
+}
+function rankLabel(card){
+  if (lang === "ja") return card.name.ja;
+  const r = {ace:"Ace", page:"Page", knight:"Knight", queen:"Queen", king:"King"}[card.rank] || card.rank;
+  const s = {wands:"Wands", cups:"Cups", swords:"Swords", pentacles:"Pentacles"}[card.suit];
+  return r + " of " + s;
+}
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, (m) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+function renderStage(animate){
+  const stage = $("#stage");
+  stage.innerHTML = "";
+  flippedCount = 0;
+  if (!current){ $("#reveal-all").classList.remove("show"); $("#controls-note").textContent = ""; return; }
+  const positions = positionsFor(current.mode);
+  current.cards.forEach((drawn, i) => {
+    const card = byKey(drawn.key);
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    const kw = lang === "ja" ? (drawn.rev ? card.kwRev : card.kwUp) : [];
+    slot.innerHTML =
+      '<div class="pos-label">' + escapeHTML(STR[lang][positions[i]]) + '</div>'
+      + '<div class="card3d"><div class="card-inner">'
+      +   '<button type="button" class="face back" aria-label="' + escapeHTML(card.name[lang]) + '"><span class="back-mark">M</span></button>'
+      +   '<div class="face front"><div class="art' + (drawn.rev ? " reversed" : "") + '">' + artHTML(card) + '</div></div>'
+      + '</div></div>'
+      + '<div class="reading">'
+      +   '<span class="r-name">' + escapeHTML(card.name[lang]) + '</span>'
+      +   '<span class="badge ' + (drawn.rev ? "rev" : "up") + '">' + (drawn.rev ? STR[lang].reversed : STR[lang].upright) + '</span>'
+      +   (kw.length ? '<div class="keywords">' + kw.map((k) => "<span>" + escapeHTML(k) + "</span>").join("") + '</div>' : "")
+      +   '<p class="meaning">' + escapeHTML(drawn.rev ? card.rev[lang] : card.up[lang]) + '</p>'
+      + '</div>';
+    slot.querySelector(".face.back").addEventListener("click", () => flip(slot));
+    stage.appendChild(slot);
+    if (animate){
+      slot.classList.add("shuffling");
+      setTimeout(() => slot.classList.remove("shuffling"), 600);
+    }
+  });
+  $("#controls-note").textContent = STR[lang].tapHint;
+  updateRevealBtn();
+}
+function updateRevealBtn(){
+  const btn = $("#reveal-all");
+  const remaining = current ? current.cards.length - flippedCount : 0;
+  btn.classList.toggle("show", !!current && remaining > 0);
+  btn.textContent = STR[lang].revealAll;
+}
+function flip(slot){
+  if (!slot || slot.classList.contains("flipped")) return;
+  slot.classList.add("flipped");
+  flippedCount++;
+  updateRevealBtn();
+  if (current && !current.fromHistory && !current.saved && flippedCount >= current.cards.length){
+    current.saved = true;
+    saveHistory(current);
+  }
+}
+
+function loadHistory(){
+  try { const raw = localStorage.getItem(HIST_KEY); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; }
+  catch (e) { return []; }
+}
+function saveHistory(reading){
+  const hist = loadHistory();
+  hist.unshift({ ts: new Date().toISOString(), mode: reading.mode, cards: reading.cards });
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 50)));
+  renderHistory();
+}
+function renderHistory(){
+  const list = $("#history-list");
+  const hist = loadHistory();
+  $("#clear-history").textContent = STR[lang].clear;
+  $("#clear-history").style.display = hist.length ? "" : "none";
+  if (!hist.length){ list.innerHTML = '<p class="hist-empty">' + escapeHTML(STR[lang].noHistory) + '</p>'; return; }
+  list.innerHTML = "";
+  hist.forEach((entry) => {
+    const d = new Date(entry.ts);
+    const dateStr = d.toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US") + " " + d.toLocaleTimeString(lang === "ja" ? "ja-JP" : "en-US", {hour:"2-digit", minute:"2-digit"});
+    const names = entry.cards.map((c) => {
+      const card = byKey(c.key);
+      return escapeHTML(card ? card.name[lang] : c.key) + (c.rev ? " (" + STR[lang].reversed + ")" : "");
+    }).join(" · ");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "hist-item";
+    btn.innerHTML = '<span class="h-date">' + escapeHTML(dateStr) + '</span><br>'
+      + '<span class="h-mode">' + escapeHTML(entry.mode === "one" ? STR[lang].one : STR[lang].three) + '</span>'
+      + '<span class="h-cards">' + names + '</span>';
+    btn.addEventListener("click", () => {
+      current = { mode: entry.mode, cards: entry.cards, fromHistory: true, saved: true };
+      renderStage(false);
+      document.querySelectorAll("#stage .slot").forEach((s) => flip(s));
+      window.scrollTo({top: 0, behavior: "smooth"});
+    });
+    list.appendChild(btn);
+  });
+}
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = STR[lang][el.dataset.i18n] || ""; });
+  $("#lang-ja").classList.toggle("active", lang === "ja");
+  $("#lang-en").classList.toggle("active", lang === "en");
+  const fc = flippedCount;
+  renderStage(false);
+  if (current){
+    flippedCount = fc;
+    document.querySelectorAll("#stage .slot").forEach((s, i) => { if (i < fc) s.classList.add("flipped"); });
+    updateRevealBtn();
+  }
+  renderHistory();
+}
+function setLang(next){
+  lang = next;
+  localStorage.setItem(LANG_KEY, lang);
+  applyLang();
+}
+
+$("#draw-one").addEventListener("click", () => { current = drawOne(); renderStage(true); });
+$("#draw-three").addEventListener("click", () => { current = drawThree(); renderStage(true); });
+$("#reveal-all").addEventListener("click", () => { document.querySelectorAll("#stage .slot").forEach((s) => flip(s)); });
+$("#lang-ja").addEventListener("click", () => setLang("ja"));
+$("#lang-en").addEventListener("click", () => setLang("en"));
+$("#clear-history").addEventListener("click", () => {
+  if (confirm(STR[lang].clearConfirm)){ localStorage.removeItem(HIST_KEY); renderHistory(); }
+});
+
+applyLang();
+</script>
+</body>
+</html>
