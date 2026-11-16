@@ -24,6 +24,7 @@ def test_static_assets_are_served():
     for path, content_type in (
         ("/app.js", "javascript"),
         ("/api.js", "javascript"),
+        ("/card.js", "javascript"),
         ("/store.js", "javascript"),
         ("/i18n.js", "javascript"),
         ("/styles.css", "text/css"),

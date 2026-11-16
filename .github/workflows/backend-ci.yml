@@ -36,3 +36,6 @@ jobs:
       - name: Test frontend store
         working-directory: frontend
         run: node tests/store.test.mjs
+      - name: Test frontend result card
+        working-directory: frontend
+        run: node tests/card.test.mjs
