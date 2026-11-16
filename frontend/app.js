@@ -1,4 +1,5 @@
 import { createReading, dailyReading, fetchSystems } from "./api.js";
+import { shareCardImage } from "./card.js";
 import { currentLanguage, resolveBrowserLanguage, setLanguage, setPageTitle, translate } from "./i18n.js";
 import { addHistory, clearHistory, deriveSubjectToken, exportHistory, loadHistory } from "./store.js";
 
@@ -185,6 +186,28 @@ function formatTimestamp(value) {
   return `${parsed.getFullYear()}/${pad(parsed.getMonth() + 1)}/${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
+function cardLabels() {
+  return {
+    score: translate("result.score"),
+    lucky: translate("result.lucky"),
+    color: translate("result.color"),
+    number: translate("result.number"),
+    direction: translate("result.direction"),
+    item: translate("result.item"),
+    reversed: translate("result.reversed"),
+    brand: "Magi",
+    site: `${window.location.origin}${window.location.pathname}`,
+  };
+}
+
+async function shareReadingAsImage(reading) {
+  try {
+    await shareCardImage(reading, cardLabels());
+  } catch {
+    setStatus(translate("status.card_failed"));
+  }
+}
+
 function renderReading(reading, input, subjectToken) {
   const card = element("article", undefined, "reading-card");
   const heading = element("h2", reading.engine_name);
@@ -228,7 +251,10 @@ function renderReading(reading, input, subjectToken) {
   const share = element("button", translate("result.copy_share"));
   share.type = "button";
   share.addEventListener("click", () => copyValue(url, share));
-  actions.append(copySeed, share);
+  const shareImage = element("button", translate("result.share_image"));
+  shareImage.type = "button";
+  shareImage.addEventListener("click", () => shareReadingAsImage(reading));
+  actions.append(copySeed, share, shareImage);
   seedBox.append(actions);
   card.append(seedBox);
   return card;
