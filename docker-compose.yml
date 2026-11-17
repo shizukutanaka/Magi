@@ -1,0 +1,22 @@
+# Magi を自分の環境で動かすための compose 一式。
+#
+#   docker compose pull        # 公開イメージを取得（公開後に使えます）
+#   docker compose up -d       # 起動
+#   docker compose up -d --build  # ソースからビルドして起動（イメージ未公開でも可）
+#
+# Magi のサーバは状態を持ちません。氏名・生年月日・問いは計算にだけ使い、
+# サーバには保存もログ出力もしません。鑑定履歴は利用者のブラウザ
+# （localStorage）にだけ残ります。そのため永続ボリュームは不要で、
+# コンテナを消しても失われるサーバ側データはありません。
+services:
+  magi:
+    image: ghcr.io/shizukutanaka/magi:${MAGI_VERSION:-latest}
+    build: .
+    ports:
+      - "${MAGI_PORT:-8000}:8000"
+    environment:
+      # 鑑定APIのレートリミット（1分あたり、0以下で無効）
+      MAGI_RATE_LIMIT_PER_MINUTE: "${MAGI_RATE_LIMIT_PER_MINUTE:-60}"
+      # 信頼できる前段プロキシの背後でのみ 1 にしてください
+      MAGI_TRUST_PROXY: "${MAGI_TRUST_PROXY:-0}"
+    restart: unless-stopped
