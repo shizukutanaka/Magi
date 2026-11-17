@@ -151,6 +151,19 @@ docker run --rm -p 8000:8000 magi
 起動後に <http://localhost:8000/> を開いてください。データベースや別の
 バッキングサービスは必要ありません。
 
+公開イメージ（GHCR）を使う場合は、リポジトリ同梱の `docker-compose.yml` で
+そのまま起動できます。
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+ソースからビルドする場合は `docker compose up -d --build` としてください。
+ポートは `MAGI_PORT`、版は `MAGI_VERSION`（例: `MAGI_VERSION=1.2.3`）で
+変えられます。サーバは状態を持たないため永続ボリュームは不要で、
+鑑定履歴は利用者のブラウザにだけ残ります。
+
 ## セキュリティヘッダ
 
 Magiは静的ファイルだけでなくAPIとエラーレスポンスにも、
