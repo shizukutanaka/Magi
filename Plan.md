@@ -219,8 +219,8 @@ APIが受け付ける入力の集合は共有URLが運べる入力の集合と�
 自動配置できないので、**未完了として明示する**のが誠実な状態である
 （「CIがある」と書いて済ませることは、Q21の乱数スコアと同種の虚偽になる）。
 ワークフローの各ステップは手元で全て実行し、通ることを確認している。
+その後、管理者が `.github/workflows/backend-ci.yml` へ配置し（PR #47）、CIは実際に実行されている。
 
-||||||| parent of c0e90a7 (fix: 共有URLの再現ペイロードをフラグメントへ移す)
 **Q28. 再現に必要な入力を、サーバのアクセスログに書かせてよいか？**
 よくない。共有URLのクエリ文字列に問い・生年月日・氏名を含めると、ページを開くだけで
 個人情報がアクセスログへ平文で記録される。実際に次のログが観測された。
@@ -338,9 +338,8 @@ Uvicornの既定dictConfigがrootにハンドラを付けないため、実際�
 
 - Backend: Python 3.12 / FastAPI / Pydantic v2（**ステートレス。DBなし・認証なし**）
 - Frontend: HTML / CSS / ES Modules（FastAPIから静的配信、履歴はlocalStorage）
-- CI: GitHub Actions のワークフローを `ci/backend-ci.yml` に置く（Ruff・pytest・
-  共有URLのオフライン検証CLI・フロントの翻訳網羅テスト）。`.github/workflows/` へ
-  配置するまで**1本も実行されない**ので、有効化はリポジトリ管理者の作業として README に書く（Q27）
+- CI: GitHub Actions のワークフローを `.github/workflows/backend-ci.yml` で実行する（Ruff・pytest・
+  共有URLのオフライン検証CLI・フロントの構文検査と単体テスト）。`ci/backend-ci.yml` は同一内容の写し（Q27）
 - 配信: 静的フロント＋軽量API。誰でも `docker run` で self-host できる形を維持する。
 
 ```
@@ -412,7 +411,7 @@ class DivinationEngine(Protocol):
 | P7 | 機構の検算（易経のKing Wen序・マヤ暦の相関・占星術の月相・四柱推命の外部暦照合） | 完了 |
 | P8 | 解釈の網羅（引いた全象徴に意味を与える）と捏造スコアの撤去 | 完了 |
 | P9 | 共有・履歴・配信の健全化（識別子の分離・履歴の同一性・再検証ヘッダ） | 完了 |
-| P10 | CI の実行（`.github/workflows/` への配置） | 未完了（管理者の作業、Q27） |
+| P10 | CI の実行（`.github/workflows/` への配置） | 完了（PR #47、Q27） |
 
 **削除した計画**: LLMによる解釈の言い換え。問いへの応答は決定的な領域分類で足り、
 LLMを入れると同じ共有URLが同じ結果を返さなくなる（Q13）。

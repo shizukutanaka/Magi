@@ -30,6 +30,9 @@ jobs:
       - name: Verify a shared reading offline
         working-directory: backend
         run: python -m app.verify 'engine=tarot&date=2026-09-01&s=demo'
+      - name: Check frontend syntax
+        working-directory: frontend
+        run: for f in *.js; do node --check "$f"; done
       - name: Test frontend translations
         working-directory: frontend
         run: node tests/i18n.test.mjs
@@ -39,3 +42,6 @@ jobs:
       - name: Test frontend result card
         working-directory: frontend
         run: node tests/card.test.mjs
+      - name: Test frontend tarot data
+        working-directory: frontend
+        run: node tests/tarot.test.mjs
