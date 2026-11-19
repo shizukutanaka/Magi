@@ -232,16 +232,9 @@ python -m pytest -q
 
 ## CI
 
-`ci/backend-ci.yml` に GitHub Actions のワークフローを置いています。有効にするには
-リポジトリの管理者が次のコマンドでコピーしてください（Devinのトークンには
-`workflow` scope が無いため、この配置のままにしています）。
-
-```bash
-mkdir -p .github/workflows
-cp ci/backend-ci.yml .github/workflows/backend-ci.yml
-```
-
-このワークフローは push / pull_request で Ruff・pytest・共有URLのオフライン検証CLI・フロントの翻訳網羅テストを実行します。
+GitHub Actions のワークフロー `.github/workflows/backend-ci.yml` が push / pull_request ごとに
+Ruff・pytest・共有URLのオフライン検証CLI・フロントの構文検査と単体テスト（翻訳・履歴ストア・結果カード・タロット）を実行します。
+`ci/backend-ci.yml` は同じ内容の写しです。変更するときは両方を揃えてください。
 
 ## 免責
 
