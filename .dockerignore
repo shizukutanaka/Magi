@@ -5,3 +5,5 @@ __pycache__
 backend/.venv
 .github
 *.md
+desktop/node_modules
+desktop/dist

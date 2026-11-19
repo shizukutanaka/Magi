@@ -14,3 +14,5 @@ __pycache__/
 .env
 .env.local
 *.secret
+# desktop launcher build output
+desktop/dist/
