@@ -164,6 +164,33 @@ docker compose up -d
 変えられます。サーバは状態を持たないため永続ボリュームは不要で、
 鑑定履歴は利用者のブラウザにだけ残ります。
 
+## デスクトップ版（補助ランチャー）
+
+Magi の正規の形態は「利用者が自分の環境で動かすソフトウェア」です。上の self-host（GHCR の公開イメージ＋`docker-compose.yml`）で起動してください。
+`desktop/` にあるデスクトップ版は、その補助ランチャーにすぎません。Magi 本体（Python のサーバと占術エンジン）は含まれておらず、
+利用者が自分で起動した Magi を専用ウィンドウで開くだけです。デスクトップ版だけでは占えません。
+
+- 接続先の既定は `http://localhost:8000` です。メニューの「接続 → 接続先を変更…」で変更でき、OS のユーザーデータ領域（`launcher.json`）に保存されます。接続先は http(s) のオリジン（スキーム・ホスト・ポート）だけを受け付けます。
+- 起動時に接続先の `/health` へ疎通確認し、`{"status":"ok"}` が返らない場合は、理由（接続拒否・タイムアウト・名前解決の失敗・Magi 以外の応答など）と compose での起動手順を示す画面を表示します。開いている途中で Magi が停止した場合も同じ画面に戻ります。
+- ウィンドウは `contextIsolation` 有効・`nodeIntegration` 無効・`sandbox` 有効・preload なしで動きます。新しいウィンドウは開かず、接続先以外への遷移とリダイレクトは遮断します。http/https のリンクは OS の既定ブラウザで開きます。
+- 鑑定履歴は、ブラウザ版と同じく接続先オリジンごとの localStorage に保存されます。接続先を変えると別の履歴になります。
+
+配布物は Windows が portable（`.exe`）、macOS が `.zip`、Linux が AppImage です。
+**いずれもコード署名・公証をしていません。** Windows では SmartScreen、macOS では Gatekeeper の警告が出る場合があります。
+不安がある場合はデスクトップ版を使わず、ブラウザで `http://localhost:8000/` を開いてください。機能は同じです。
+
+ソースから起動・ビルドする場合（Node.js 22 以降）:
+
+```bash
+cd desktop
+npm ci
+npm start          # 開発用に起動
+npm test           # 接続先の検証・遷移判定・/health 判定の単体テスト
+npm run dist       # 実行中の OS 向けの配布物を desktop/dist/ に作成
+```
+
+`electron` と `electron-builder` は版数を固定し、`desktop/package-lock.json` で依存関係を固定しています。
+
 ## セキュリティヘッダ
 
 Magiは静的ファイルだけでなくAPIとエラーレスポンスにも、
@@ -198,6 +225,8 @@ uv pip install -r requirements.txt pytest httpx ruff
 python -m ruff check app tests
 python -m pytest -q
 ```
+
+デスクトップ用ランチャー（`desktop/`）の単体テストは `cd desktop && npm ci && npm test` で実行できます。
 
 開発への参加方法は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
