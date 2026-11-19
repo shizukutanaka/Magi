@@ -75,7 +75,8 @@ UIはHTML・CSS・ES Modulesだけで構成されており、ビルド工程、n
 起動後に `http://localhost:8000/tarot.html` を開くと、APIを使わずそのページだけで
 ライダー・ウェイト版78枚の「今日の一枚」と3枚引き（過去・現在・未来）が利用できます。
 日本語／英語の切替に対応し、履歴はブラウザのlocalStorageにのみ保存されます。
-カードの解釈データはバックエンドの正本（`backend/app/divination/data/`）と同一の内容です。
+カードの解釈データはバックエンドの正本（`backend/app/divination/data/`）と同一の内容で、
+その一致（78枚の並び・名前・キーワード・正逆の解釈、ja/en）は `backend/tests/test_data_integrity.py` が検査します。
 データの完全性は `frontend/tests/tarot.test.mjs` で検証できます。
 
 ### 共有URL
