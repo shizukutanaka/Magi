@@ -61,7 +61,8 @@ async function handleLauncherRequest(request) {
   const url = new URL(request.url);
   switch (url.pathname) {
     case '/connect': {
-      if (url.searchParams.has('url')) {
+      const saving = url.searchParams.has('url');
+      if (saving) {
         const result = policy.normalizeServerUrl(url.searchParams.get('url'));
         if (!result.ok) {
           return htmlResponse(pages.renderOfflinePage({ serverUrl: serverOrigin, reason: result.error }));
@@ -79,7 +80,7 @@ async function handleLauncherRequest(request) {
       const health = await policy.checkHealth(serverOrigin);
       if (!health.ok) {
         lastReason = health.reason;
-        return htmlResponse(pages.renderOfflinePage({ serverUrl: serverOrigin, reason: health.reason }));
+        return htmlResponse(pages.renderOfflinePage({ serverUrl: serverOrigin, reason: health.reason, saved: saving }));
       }
       const target = `${serverOrigin}/`;
       setImmediate(() => mainWindow && !mainWindow.isDestroyed() && mainWindow.loadURL(target));

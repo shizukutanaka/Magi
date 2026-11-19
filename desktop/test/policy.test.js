@@ -79,6 +79,9 @@ test('接続できない画面は理由と compose の起動手順を示し、�
   assert.ok(html.includes('docker compose up -d'));
   assert.ok(html.includes('action="/connect"'));
   assert.ok(!/<script/i.test(html));
+  assert.ok(!html.includes('は保存されました'));
+  const saved = pages.renderOfflinePage({ serverUrl: 'http://localhost:8080', reason: 'x', saved: true });
+  assert.ok(saved.includes('は保存されました'));
 });
 
 test('ランチャー画面の CSP はスクリプトを許可しない', () => {

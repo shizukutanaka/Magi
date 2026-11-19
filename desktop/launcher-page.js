@@ -64,10 +64,14 @@ docker compose up -d</code></pre>
 ポートを変える場合は <code>MAGI_PORT=8080 docker compose up -d</code> とし、接続先を <code>http://localhost:8080</code> にしてください。
 起動後、<code>docker compose ps</code> で状態を確認できます。</p>`;
 
-function renderOfflinePage({ serverUrl, reason }) {
+function renderOfflinePage({ serverUrl, reason, saved = false }) {
+  const savedNote = saved
+    ? `<p>接続先 <strong>${escapeHtml(serverUrl)}</strong> は保存されました。Magi を起動してから「再試行」を押してください。</p>`
+    : '';
   return layout('Magi に接続できません', `
 <h1>Magi に接続できませんでした</h1>
 <p class="reason"><strong>${escapeHtml(serverUrl)}</strong> に接続できませんでした。<br>${escapeHtml(reason)}</p>
+${savedNote}
 ${HOW_TO_START}
 ${connectForm(serverUrl)}`);
 }
