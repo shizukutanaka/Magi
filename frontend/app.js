@@ -58,19 +58,14 @@ function inputFromForm() {
   const value = {
     target_date: document.querySelector("#target-date").value,
     question: document.querySelector("#question").value || undefined,
-    birth_date: document.querySelector("#birth-date").value || undefined,
-    full_name: document.querySelector("#full-name").value || undefined,
     options: { spread: document.querySelector("#spread").value },
   };
   return value;
 }
 
-function fillForm(params) {
-  const input = inputFromShareParams(params, today());
+function fillForm(input) {
   document.querySelector("#target-date").value = input.target_date;
   document.querySelector("#question").value = input.question || "";
-  document.querySelector("#birth-date").value = input.birth_date || "";
-  document.querySelector("#full-name").value = input.full_name || "";
   document.querySelector("#spread").value = input.options.spread;
 }
 
@@ -292,10 +287,12 @@ async function init() {
     return;
   }
   if (params.get("engine")) {
-    fillForm(params);
+    // 以前の共有URLが運ぶ氏名・生年月日はシードに入っているため、再現にはそのまま使う。
+    const sharedInput = inputFromShareParams(params, today());
+    fillForm(sharedInput);
     const rawSubject = params.get("s")?.trim();
     const deepLinkSubject = rawSubject ? rawSubject : undefined;
-    await runReading(inputFromForm(), deepLinkSubject);
+    await runReading(sharedInput, deepLinkSubject);
     if (!deepLinkSubject && state.activeReading) setStatus(translate("status.share_incomplete"));
   }
 }

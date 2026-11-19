@@ -20,6 +20,14 @@ def test_root_serves_index_html():
     assert "今日の三賢者" not in response.text
 
 
+def test_reading_form_does_not_ask_for_unused_personal_data():
+    html = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+    app_js = (FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
+    for field_id in ("full-name", "birth-date"):
+        assert f'id="{field_id}"' not in html
+        assert f"#{field_id}" not in app_js
+
+
 def test_static_assets_are_served():
     client = TestClient(app)
     for path, content_type in (
