@@ -14,7 +14,6 @@ from app.divination.service import (
     MissingFieldsError,
     UnknownSpreadError,
     cast_reading,
-    daily_reading,
 )
 from app.i18n import resolve_lang
 
@@ -41,10 +40,6 @@ def _input_from_query(params: dict[str, str]) -> DivinationInput:
         raise ValueError("共有URLの日付を解釈できません。") from exc
 
 
-def _readings_from_result(result: dict | Reading) -> list[Reading]:
-    return [result] if isinstance(result, Reading) else result["readings"]
-
-
 def _print_reading(reading: Reading) -> None:
     print(f"流派: {reading.engine_name}（{reading.tradition}）")
     print(f"シード: {reading.seed}")
@@ -57,30 +52,12 @@ def _print_reading(reading: Reading) -> None:
         print(f"スコア: {reading.score}")
 
 
-def _print_human(result: dict) -> None:
-    readings = _readings_from_result(result)
-    if len(readings) > 1:
-        print("今日の三賢者")
-    for index, reading in enumerate(readings):
-        if index:
-            print()
-        _print_reading(reading)
-    if len(readings) > 1:
-        print(f"概要: {result['overview']}")
-        print(f"平均スコア: {result['score']}" if result["score"] is not None else "平均スコア: なし")
+def _print_json(reading: Reading) -> None:
+    print(json.dumps(reading.model_dump(mode="json"), ensure_ascii=False))
 
 
-def _print_json(result: dict | Reading) -> None:
-    if isinstance(result, Reading):
-        payload = result.model_dump(mode="json")
-    else:
-        payload = dict(result)
-        payload["readings"] = [reading.model_dump(mode="json") for reading in _readings_from_result(result)]
-    print(json.dumps(payload, ensure_ascii=False))
-
-
-def _print_seed_check(expected: str, readings: list[Reading], as_json: bool) -> bool:
-    matched = any(reading.seed == expected for reading in readings)
+def _print_seed_check(expected: str, reading: Reading, as_json: bool) -> bool:
+    matched = reading.seed == expected
     message = f"シード: {'一致' if matched else '不一致'}（期待値: {expected}）"
     print(message, file=sys.stderr if as_json else sys.stdout)
     return matched
@@ -99,13 +76,10 @@ def main(argv: list[str] | None = None) -> int:
         inp = _input_from_query(params)
         subject_key = params.get("s") or "anonymous"
         lang = resolve_lang(args.lang or params.get("lang"), None)
-        if params.get("daily") == "1":
-            result = daily_reading(inp, subject_key, lang)
-        else:
-            engine_id = params.get("engine")
-            if not engine_id:
-                raise ValueError("共有URLにengineが指定されていません。")
-            result = cast_reading(engine_id, inp, subject_key, lang)
+        engine_id = params.get("engine")
+        if not engine_id:
+            raise ValueError("共有URLにengineが指定されていません。")
+        reading = cast_reading(engine_id, inp, subject_key, lang)
     except UnknownEngineError:
         print(f"未知の流派です: {params.get('engine', '')}", file=sys.stderr)
         return 2
@@ -124,12 +98,11 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
-    readings = _readings_from_result(result)
     if args.as_json:
-        _print_json(result)
+        _print_json(reading)
     else:
-        _print_human(result)
-    if args.expected_seed is not None and not _print_seed_check(args.expected_seed, readings, args.as_json):
+        _print_reading(reading)
+    if args.expected_seed is not None and not _print_seed_check(args.expected_seed, reading, args.as_json):
         return 1
     return 0
 

@@ -31,7 +31,6 @@ open -na "Google Chrome" --args --user-data-dir=/tmp/magi-chrome --remote-debugg
 
 - Share URL format: `http://localhost:PORT/#engine=<id>&date=YYYY-MM-DD&q=..&birth=..&name=..&s=<subject-token>&lang=ja`. Fragments never reach the server log — verify privacy by grepping the stderr log for `q=`/`birth=`/`name=`. Old `?` URLs still work (readUrl falls back to `location.search`).
 - `hashchange` listener calls `location.reload()` — pasting a different `#` URL over the same path auto-reloads and re-runs the reading.
-- Engines: `tarot` (no required fields, has spread), `numerology` (requires birth_date + full_name). History lives in `localStorage["magi.history"]`, deduped by `seed`; entries are `<a href>` so clicks navigate.
-- To trigger the numerology master-number guidance text (`body.numerology.guidance`), use `birth=1990-01-02` — its digit sum is 22, a master number.
+- Magi is tarot-only: the only engine is `tarot` (no required fields, has spread). The landing page is the tarot form; non-tarot `engine=` and `daily=1` share URLs show an "unsupported" status instead of a reading. History lives in `localStorage["magi.history"]`, deduped by `seed`; entries are `<a href>` so clicks navigate.
 - `python -m app.verify '<share-url>' --expect-seed <seed>` exits 0 on seed match, 1 on mismatch; accepts both `#` and `?` URLs. Sections aren't in human output — use `--json` to inspect section bodies.
 - History export downloads `~/Downloads/magi-history.json` (blob URL).

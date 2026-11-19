@@ -62,7 +62,6 @@ class Reading(BaseModel):
 class DivinationEngine(Protocol):
     id: str
     name: str
-    culture: str
     required_fields: frozenset[str]
     default_options: dict[str, str]
 

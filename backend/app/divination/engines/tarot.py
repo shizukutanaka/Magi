@@ -14,7 +14,6 @@ ALLOWED_SPREADS = ("three-card", "celtic-cross")
 class TarotEngine:
     id = "tarot"
     name = "タロット"
-    culture = "western"
     required_fields = frozenset()
     default_options = {"spread": "three-card"}
 
@@ -74,7 +73,7 @@ class TarotEngine:
             self.id, t(lang, "engine.tarot.name"), t(lang, "engine.tarot.tradition"), rng.seed, drawn,
             t(lang, "summary.tarot", name=lead_name, meaning=first_sentence(lead_meaning)),
             sections,
-            None, rng, lang,
+            rng, lang,
         )
 
 

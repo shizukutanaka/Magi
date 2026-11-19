@@ -2,7 +2,6 @@ import re
 from datetime import date
 
 from app.divination.base import DivinationInput
-from app.divination.data.runes import RUNES
 from app.divination.data.tarot import CARDS
 from app.divination.registry import get_engine
 from app.divination.seed import SeededRandom, build_seed
@@ -56,35 +55,8 @@ def test_tarot_celtic_cross_interprets_all_ten_cards():
     assert reading.sections[-1].title == "助言"
 
 
-def test_runes_interpret_all_three_positions_and_reversals():
-    inp = reading_input()
-    reading = get_engine("runes").cast(
-        inp,
-        SeededRandom(build_seed("sections", "runes", inp)),
-        "ja",
-    )
-    runes = {rune.key: rune for rune in RUNES}
-
-    assert [section.title for section in reading.sections[:-1]] == [
-        symbol.position for symbol in reading.drawn
-    ]
-    assert reading.sections[-1].title == "助言"
-    assert [section.body for section in reading.sections[:-1]] == [
-        runes[symbol.key].reversed_meaning
-        if symbol.reversed
-        else runes[symbol.key].meaning
-        for symbol in reading.drawn
-    ]
-    reversed_index = next(
-        index for index, symbol in enumerate(reading.drawn) if symbol.reversed
-    )
-    reversed_symbol = reading.drawn[reversed_index]
-    assert reading.sections[reversed_index].body == runes[reversed_symbol.key].reversed_meaning
-
-
-def test_tarot_and_rune_position_meanings_vary_across_draws():
+def test_tarot_position_meanings_vary_across_draws():
     tarot_bodies = [set() for _ in range(3)]
-    rune_bodies = [set() for _ in range(3)]
     for index in range(150):
         tarot_input = reading_input(options={"spread": "three-card"})
         tarot = get_engine("tarot").cast(
@@ -92,22 +64,14 @@ def test_tarot_and_rune_position_meanings_vary_across_draws():
             SeededRandom(build_seed(f"variation-{index}", "tarot", tarot_input)),
             "ja",
         )
-        runes_input = reading_input()
-        runes = get_engine("runes").cast(
-            runes_input,
-            SeededRandom(build_seed(f"variation-{index}", "runes", runes_input)),
-            "ja",
-        )
         for position in range(3):
             tarot_bodies[position].add(tarot.sections[position].body)
-            rune_bodies[position].add(runes.sections[position].body)
 
     assert all(len(bodies) >= 20 for bodies in tarot_bodies)
-    assert all(len(bodies) >= 20 for bodies in rune_bodies)
 
 
-def test_english_tarot_and_rune_sections_are_localized():
-    for engine_id, options in (("tarot", {"spread": "three-card"}), ("runes", {})):
+def test_english_tarot_sections_are_localized():
+    for engine_id, options in (("tarot", {"spread": "three-card"}),):
         inp = reading_input(options=options)
         reading = get_engine(engine_id).cast(
             inp,

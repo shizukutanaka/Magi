@@ -49,30 +49,10 @@ async function requestJson(url, options) {
   return payload;
 }
 
-export function fetchSystems(lang = currentLanguage()) {
-  return requestJson(`/api/v1/systems?lang=${encodeURIComponent(lang)}`);
-}
-
 export function createReading({ engine_id, input, subject_key, lang = currentLanguage() }) {
   return requestJson("/api/v1/readings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ engine_id, input, subject_key, lang }),
-  });
-}
-
-export function dailyReading({ target_date, question, birth_date, full_name, options, subject_key, lang = currentLanguage() }) {
-  return requestJson("/api/v1/readings/daily", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      target_date,
-      question,
-      birth_date,
-      full_name,
-      options,
-      subject_key,
-      lang,
-    }),
   });
 }

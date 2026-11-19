@@ -16,7 +16,8 @@ def test_root_serves_index_html():
     response = TestClient(app).get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "今日の三賢者" in response.text
+    assert "<title>Magi — タロット</title>" in response.text
+    assert "今日の三賢者" not in response.text
 
 
 def test_static_assets_are_served():

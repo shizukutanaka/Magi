@@ -1,8 +1,10 @@
 import json
 from urllib.parse import urlencode
 
+import pytest
 from fastapi.testclient import TestClient
 
+from app.divination.registry import get_engine
 from app.main import app
 from app.verify import main
 
@@ -45,36 +47,20 @@ def test_cli_single_reading_matches_api(capsys):
     assert cli["drawn"] == api.json()["drawn"]
 
 
-def test_cli_daily_matches_api(capsys):
-    url = share_url(
-        daily="1",
-        date="2026-01-01",
-        q="今日の問い",
-        birth="1990-01-02",
-        name="山田太郎",
-        s="verify-daily",
-    )
-    exit_code = main([url, "--json"])
-    cli = json.loads(capsys.readouterr().out)
-    api = client.post(
-        "/api/v1/readings/daily",
-        json={
-            "target_date": "2026-01-01",
-            "question": "今日の問い",
-            "birth_date": "1990-01-02",
-            "full_name": "山田太郎",
-            "subject_key": "verify-daily",
-        },
-    )
-    assert exit_code == 0
-    assert api.status_code == 200
-    assert [reading["seed"] for reading in cli["readings"]] == [
-        reading["seed"] for reading in api.json()["readings"]
-    ]
-    assert [reading["drawn"] for reading in cli["readings"]] == [
-        reading["drawn"] for reading in api.json()["readings"]
-    ]
-    assert cli["overview"] == api.json()["overview"]
+def test_cli_daily_share_url_is_rejected(capsys):
+    exit_code = main([share_url(daily="1", date="2026-01-01", s="verify-daily")])
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "engineが指定されていません" in captured.err
+
+
+@pytest.mark.parametrize("engine_id", ["iching", "runes", "omikuji", "astrology", "numerology", "bazi", "mayan", "geomancy"])
+def test_cli_removed_engine_share_url_is_unknown(capsys, engine_id):
+    exit_code = main([fragment_share_url(engine=engine_id, date="2026-01-01", s="removed")])
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "未知の流派" in captured.err
+    assert "Traceback" not in captured.err
 
 
 def test_cli_default_and_explicit_tarot_spread_match(capsys):
@@ -127,8 +113,9 @@ def test_cli_expect_seed_exit_codes(capsys):
     assert "不一致" in capsys.readouterr().out
 
 
-def test_cli_missing_required_field_is_japanese_error(capsys):
-    exit_code = main([share_url(engine="numerology", date="2026-01-01")])
+def test_cli_missing_required_field_is_japanese_error(capsys, monkeypatch):
+    monkeypatch.setattr(get_engine("tarot"), "required_fields", frozenset({"full_name"}))
+    exit_code = main([share_url(engine="tarot", date="2026-01-01")])
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "必須入力が不足しています" in captured.err

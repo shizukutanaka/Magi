@@ -2,17 +2,6 @@
 
 from importlib import import_module
 
-for _module_name in (
-    "tarot",
-    "iching",
-    "runes",
-    "omikuji",
-    "astrology",
-    "numerology",
-    "bazi",
-    "mayan",
-    "geomancy",
-):
-    import_module(f"{__name__}.{_module_name}")
+import_module(f"{__name__}.tarot")
 
-__all__ = ["astrology", "bazi", "geomancy", "iching", "mayan", "numerology", "omikuji", "runes", "tarot"]
+__all__ = ["tarot"]

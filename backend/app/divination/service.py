@@ -1,11 +1,9 @@
 """HTTP-independent reading orchestration."""
 
-import hashlib
-
-from app.divination.base import DivinationEngine, DivinationInput, Reading, ReadingSection
+from app.divination.base import DivinationInput, Reading, ReadingSection
 from app.divination.engines.tarot import ALLOWED_SPREADS
 from app.divination.question import classify_question
-from app.divination.registry import all_engines, get_engine
+from app.divination.registry import get_engine
 from app.divination.seed import SeededRandom, build_seed
 from app.i18n import DEFAULT_LANG, Lang, t
 
@@ -62,56 +60,3 @@ def cast_reading(
     seed = build_seed(subject_key, engine.id, inp)
     return _add_question_focus(engine.cast(inp, SeededRandom(seed), lang), inp, lang)
 
-
-def select_daily_engines(
-    inp: DivinationInput,
-    subject_key: str,
-) -> list[DivinationEngine]:
-    """Select up to three eligible engines from distinct culture areas."""
-    available = [
-        engine
-        for engine in all_engines()
-        if all(getattr(inp, field, None) is not None for field in engine.required_fields)
-    ]
-    by_culture: dict[str, list[DivinationEngine]] = {}
-    for engine in available:
-        by_culture.setdefault(engine.culture, []).append(engine)
-    cultures = sorted(by_culture)
-    selection_rng = SeededRandom(hashlib.sha256(f"{subject_key}|{inp.target_date}".encode()).hexdigest())
-    chosen = selection_rng.sample(cultures, len(cultures))[:3]
-    return [selection_rng.choice(by_culture[culture]) for culture in chosen]
-
-
-def daily_reading(
-    inp: DivinationInput,
-    subject_key: str,
-    lang: Lang = DEFAULT_LANG,
-) -> dict:
-    """Return the deterministic three-culture-area daily reading."""
-    _validate_spread(inp)
-    selection = select_daily_engines(inp, subject_key)
-    readings = [cast_reading(engine.id, inp, subject_key, lang) for engine in selection]
-    scores = [reading.score for reading in readings if reading.score is not None]
-    names = t(
-        lang,
-        "list.separator",
-    ).join(
-        t(
-            lang,
-            "format.daily.pair",
-            engine=reading.engine_name,
-            symbol=reading.drawn[0].name,
-        )
-        for reading in readings
-    )
-    overview = t(
-        lang,
-        "daily.overview",
-        count=len(readings),
-        names=names,
-    )
-    return {
-        "readings": readings,
-        "overview": overview,
-        "score": round(sum(scores) / len(scores)) if scores else None,
-    }

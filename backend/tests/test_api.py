@@ -11,22 +11,11 @@ def test_health():
     assert client.get("/health").json() == {"status": "ok"}
 
 
-def test_systems_are_all_unconditionally_available():
+def test_systems_lists_only_tarot():
     response = client.get("/api/v1/systems")
     assert response.status_code == 200
     systems = response.json()
-    assert len(systems) == 9
-    assert {item["id"] for item in systems} == {
-        "tarot",
-        "iching",
-        "runes",
-        "omikuji",
-        "astrology",
-        "numerology",
-        "bazi",
-        "mayan",
-        "geomancy",
-    }
+    assert [item["id"] for item in systems] == ["tarot"]
     assert all(set(item) == {"id", "name", "tradition", "required_fields", "interpretation_langs"} for item in systems)
 
 
@@ -40,7 +29,6 @@ def test_reading_success():
     ("path", "payload"),
     [
         ("/api/v1/readings", {"engine_id": "tarot", "input": {"target_date": "2026-01-01"}}),
-        ("/api/v1/readings/daily", {"target_date": "2026-01-01"}),
     ],
 )
 def test_empty_subject_key_is_rejected_but_omitted_subject_key_is_valid(path, payload):
@@ -154,51 +142,26 @@ def test_reading_unknown_engine():
     assert response.status_code == 404
 
 
-def test_reading_required_input_missing():
+@pytest.mark.parametrize("engine_id", ["iching", "runes", "omikuji", "astrology", "numerology", "bazi", "mayan", "geomancy"])
+def test_removed_engines_are_unknown(engine_id):
+    response = client.post("/api/v1/readings", json={"engine_id": engine_id, "input": {"target_date": "2026-01-01"}})
+    assert response.status_code == 404
+
+
+def test_daily_endpoint_is_removed():
+    assert client.post("/api/v1/readings/daily", json={"target_date": "2026-01-01"}).status_code in {404, 405}
+
+
+def test_reading_required_input_missing(monkeypatch):
+    from app.divination.registry import get_engine
+
+    monkeypatch.setattr(get_engine("tarot"), "required_fields", frozenset({"birth_date"}))
     response = client.post(
         "/api/v1/readings",
-        json={"engine_id": "astrology", "input": {"target_date": "2026-01-01"}},
+        json={"engine_id": "tarot", "input": {"target_date": "2026-01-01"}},
     )
     assert response.status_code == 422
-
-
-def test_daily_returns_three_distinct_traditions():
-    response = client.post("/api/v1/readings/daily", json={"target_date": "2026-01-01", "subject_key": "daily"})
-    assert response.status_code == 200
-    readings = response.json()["readings"]
-    assert len(readings) == 3
-    assert len({reading["tradition"] for reading in readings}) == 3
-    assert "upgrade_required" not in response.json()
-
-
-def test_daily_readings_match_single_readings():
-    payload = {
-        "target_date": "2026-01-01",
-        "question": "今日の問い",
-        "birth_date": "1990-01-02",
-        "full_name": "山田太郎",
-        "subject_key": "repro",
-    }
-    daily = client.post("/api/v1/readings/daily", json=payload)
-    assert daily.status_code == 200
-    input_data = {
-        "target_date": payload["target_date"],
-        "question": payload["question"],
-        "birth_date": payload["birth_date"],
-        "full_name": payload["full_name"],
-        "options": {},
-    }
-    for reading in daily.json()["readings"]:
-        single_input = {**input_data}
-        if reading["engine_id"] == "tarot":
-            single_input["options"] = {"spread": "three-card"}
-        single = client.post(
-            "/api/v1/readings",
-            json={"engine_id": reading["engine_id"], "input": single_input, "subject_key": payload["subject_key"]},
-        )
-        assert single.status_code == 200
-        assert single.json()["seed"] == reading["seed"]
-        assert single.json()["drawn"] == reading["drawn"]
+    assert response.json()["detail"] == {"missing_fields": ["birth_date"]}
 
 
 def test_rate_limit_returns_429_and_retry_after(monkeypatch):
