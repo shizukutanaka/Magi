@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="世界の占術を横断して、自分の問いを見つめるMagi">
-    <title>Magi — 今日の三賢者</title>
+    <meta name="description" content="78枚のタロットで、自分の問いを見つめるMagi">
+    <title>Magi — タロット</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
@@ -12,8 +12,7 @@
     <header class="site-header">
       <a class="brand" href="/">Magi</a>
       <nav aria-label="メインナビゲーション" data-i18n-aria-label="nav.aria">
-        <button type="button" data-view="landing" data-i18n="nav.daily">今日の三賢者</button>
-        <button type="button" data-view="reading-form" data-i18n="nav.reading">鑑定</button>
+        <button type="button" data-view="reading-form" data-i18n="nav.reading">タロット</button>
         <button type="button" data-view="history" data-i18n="nav.history">履歴</button>
         <label class="language-switch"><span data-i18n="language.label">言語</span>
           <select id="language-select" aria-label="言語" data-i18n-aria-label="language.label">
@@ -26,39 +25,26 @@
     <main id="main-content" class="container" tabindex="-1">
       <p id="status" class="status" role="status" aria-live="polite"></p>
 
-      <section id="view-landing" data-view-panel>
-        <p class="eyebrow" data-i18n="landing.eyebrow">Magi / Daily Magi</p>
-        <h1 tabindex="-1" data-i18n="landing.title">今日の三賢者</h1>
-        <p class="lead" data-i18n="landing.lead">異なる伝統の象徴を並べ、今日の問いを静かに見つめます。</p>
-        <button id="daily-button" class="primary-button" type="button" data-i18n="landing.start">今日の鑑定をはじめる</button>
+      <section id="view-reading-form" data-view-panel>
+        <p class="eyebrow" data-i18n="reading.eyebrow">Magi / Tarot</p>
+        <h1 tabindex="-1" data-i18n="reading.title">タロット</h1>
+        <p class="lead" data-i18n="reading.lead">78枚のタロットから、入力とシードで決まる一組を引き、いまの問いを静かに見つめます。</p>
         <p class="privacy-note" data-i18n="privacy.note">ログイン不要。入力は鑑定計算にのみ使われ、サーバには保存されません。</p>
-      </section>
-
-      <section id="view-reading-form" data-view-panel hidden>
-        <p class="eyebrow" data-i18n="reading.eyebrow">Magi / Reading</p>
-        <h1 tabindex="-1" data-i18n="reading.title">鑑定</h1>
         <form id="reading-form">
-          <label>
-            <span data-i18n="form.engine">占術</span>
-            <select id="engine-id" name="engine_id" required></select>
-          </label>
           <label>
             <span data-i18n="form.date">対象日</span>
             <input id="target-date" name="target_date" type="date" required>
           </label>
-          <label id="question-field">
-            <span id="question-label">問い（任意）</span>
+          <label>
+            <span data-i18n="form.question_optional">問い（任意）</span>
             <textarea id="question" name="question" rows="3" maxlength="200" placeholder="いま心にある問い" data-i18n-placeholder="form.question_placeholder"></textarea>
           </label>
-          <label id="birth-date-field" hidden>
-            <span data-i18n="form.birth_date">生年月日</span>
-            <input id="birth-date" name="birth_date" type="date">
-          </label>
-          <label id="full-name-field">
-            <span id="full-name-label">氏名（任意）</span>
+          <input id="birth-date" name="birth_date" type="hidden">
+          <label>
+            <span data-i18n="form.full_name_optional">氏名（任意）</span>
             <input id="full-name" name="full_name" type="text" maxlength="100" autocomplete="name">
           </label>
-          <label id="spread-field" hidden>
+          <label>
             <span data-i18n="form.spread">スプレッド</span>
             <select id="spread" name="spread">
               <option value="three-card" data-i18n="form.spread_three">スリーカード</option>

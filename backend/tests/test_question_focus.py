@@ -43,7 +43,7 @@ def test_english_focus_bodies_have_no_cjk():
         assert not CJK.search(CATALOGS["en"][key])
 
 
-def test_focus_depends_on_question_topic_and_engine():
+def test_focus_depends_on_question_topic():
     base = {"target_date": date(2026, 9, 1)}
     work = cast_reading(
         "tarot",
@@ -57,18 +57,5 @@ def test_focus_depends_on_question_topic_and_engine():
         "focus-love",
         "ja",
     )
-    tarot = cast_reading(
-        "tarot",
-        DivinationInput(**base, question="仕事の進め方を考えたい"),
-        "focus-engine-tarot",
-        "ja",
-    )
-    runes = cast_reading(
-        "runes",
-        DivinationInput(**base, question="仕事の進め方を考えたい"),
-        "focus-engine-runes",
-        "ja",
-    )
 
     assert work.sections[1].body != love.sections[1].body
-    assert tarot.sections[1].body != runes.sections[1].body

@@ -63,7 +63,7 @@ assert.equal(
   "ラッキーアイテム: 色: 赤 / 数字: 7 / 方角: 東 / アイテム: 鍵",
 );
 
-const bare = buildCardContent({ engine_name: "易経", tradition: "中国", summary: "x", drawn: [], score: 42, lucky: null });
+const bare = buildCardContent({ engine_name: "タロット", tradition: "西洋", summary: "x", drawn: [], score: 42, lucky: null });
 assert.equal(bare.score, 42);
 assert.equal(bare.lucky, null);
 
@@ -113,7 +113,7 @@ assert.ok(!scored.texts.some((entry) => entry.text.includes("ラッキーアイ�
 
 // --- cardFileName / canShareFile ---
 assert.equal(cardFileName(reading), "magi-tarot-2026-11-16.png");
-assert.equal(cardFileName({ engine_id: "iching" }), "magi-iching.png");
+assert.equal(cardFileName({ engine_id: "tarot" }), "magi-tarot.png");
 assert.equal(cardFileName({ engine_id: "a/b c", generated_at: "2026-01-02" }), "magi-abc-2026-01-02.png");
 assert.equal(cardFileName({}), "magi-reading.png");
 

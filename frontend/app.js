@@ -1,22 +1,19 @@
-import { createReading, dailyReading, fetchSystems } from "./api.js";
+import { createReading } from "./api.js";
 import { shareCardImage } from "./card.js";
-import { currentLanguage, resolveBrowserLanguage, setLanguage, setPageTitle, translate } from "./i18n.js";
+import { resolveBrowserLanguage, setLanguage, setPageTitle, translate } from "./i18n.js";
+import { inputFromShareParams, isUnsupportedShare, readShareParams, shareUrl, TAROT_ENGINE_ID } from "./share.js";
 import { addHistory, clearHistory, deriveSubjectToken, exportHistory, loadHistory } from "./store.js";
 
 const state = {
-  systems: [],
   activeReadingSubject: null,
   activeInput: null,
-  activeReadings: [],
-  activeDaily: false,
+  activeReading: null,
   lang: "ja",
 };
 
 const panels = [...document.querySelectorAll("[data-view-panel]")];
 const status = document.querySelector("#status");
-const engineSelect = document.querySelector("#engine-id");
 const readingSubmit = document.querySelector("#reading-form button[type=submit]");
-const dailyButton = document.querySelector("#daily-button");
 let readingInFlight = false;
 
 function element(tag, text, className) {
@@ -33,7 +30,6 @@ function setStatus(message = "") {
 function setReadingInFlight(inFlight) {
   readingInFlight = inFlight;
   readingSubmit.disabled = inFlight;
-  dailyButton.disabled = inFlight;
 }
 
 function showView(view, { focus = false } = {}) {
@@ -58,90 +54,28 @@ function today() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
-function selectedSystem() {
-  return state.systems.find((system) => system.id === engineSelect.value);
-}
-
-function updateFields() {
-  const system = selectedSystem();
-  const required = new Set(system?.required_fields || []);
-  document.querySelector("#birth-date-field").hidden = !required.has("birth_date");
-  document.querySelector("#question-field").hidden = false;
-  document.querySelector("#full-name-field").hidden = false;
-  document.querySelector("#spread-field").hidden = engineSelect.value !== "tarot";
-  document.querySelector("#birth-date").required = required.has("birth_date");
-  document.querySelector("#full-name").required = required.has("full_name");
-  document.querySelector("#question").required = required.has("question");
-  updateLabel("#question-label", required.has("question") ? "form.question" : "form.question_optional");
-  updateLabel("#full-name-label", required.has("full_name") ? "form.full_name" : "form.full_name_optional");
-}
-
-function updateLabel(selector, key) {
-  const label = document.querySelector(selector);
-  if (label) label.textContent = translate(key);
-}
-
-function populateSystems() {
-  const selected = engineSelect.value;
-  engineSelect.replaceChildren();
-  state.systems.forEach((system) => {
-    const option = element("option", `${system.name} — ${system.tradition}`);
-    option.value = system.id;
-    engineSelect.append(option);
-  });
-  if (state.systems.some((system) => system.id === selected)) engineSelect.value = selected;
-  updateFields();
-}
-
 function inputFromForm() {
   const value = {
     target_date: document.querySelector("#target-date").value,
     question: document.querySelector("#question").value || undefined,
     birth_date: document.querySelector("#birth-date").value || undefined,
     full_name: document.querySelector("#full-name").value || undefined,
-    options: {},
+    options: { spread: document.querySelector("#spread").value },
   };
-  if (engineSelect.value === "tarot") {
-    value.options.spread = document.querySelector("#spread").value;
-  }
   return value;
 }
 
 function fillForm(params) {
-  if (params.get("engine") && state.systems.some((system) => system.id === params.get("engine"))) {
-    engineSelect.value = params.get("engine");
-  }
-  document.querySelector("#target-date").value = params.get("date") || today();
-  document.querySelector("#question").value = params.get("q") || "";
-  document.querySelector("#birth-date").value = params.get("birth") || "";
-  document.querySelector("#full-name").value = params.get("name") || "";
-  document.querySelector("#spread").value = params.get("spread") || "three-card";
-  updateFields();
+  const input = inputFromShareParams(params, today());
+  document.querySelector("#target-date").value = input.target_date;
+  document.querySelector("#question").value = input.question || "";
+  document.querySelector("#birth-date").value = input.birth_date || "";
+  document.querySelector("#full-name").value = input.full_name || "";
+  document.querySelector("#spread").value = input.options.spread;
 }
 
 function queryForReading(engineId, input, subjectToken, lang = state.lang) {
-  const params = new URLSearchParams();
-  params.set("engine", engineId);
-  params.set("date", input.target_date);
-  if (input.question) params.set("q", input.question);
-  if (input.birth_date) params.set("birth", input.birth_date);
-  if (input.full_name) params.set("name", input.full_name);
-  if (input.options?.spread) params.set("spread", input.options.spread);
-  params.set("s", subjectToken);
-  params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
-}
-
-function queryForDaily(input, subjectToken, lang = state.lang) {
-  const params = new URLSearchParams();
-  params.set("daily", "1");
-  params.set("date", input.target_date);
-  if (input.question) params.set("q", input.question);
-  if (input.birth_date) params.set("birth", input.birth_date);
-  if (input.full_name) params.set("name", input.full_name);
-  params.set("s", subjectToken);
-  params.set("lang", lang);
-  return `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+  return shareUrl(`${window.location.origin}${window.location.pathname}`, engineId, input, subjectToken, lang);
 }
 
 function textWithLabel(label, value) {
@@ -260,72 +194,29 @@ function renderReading(reading, input, subjectToken) {
   return card;
 }
 
-function renderResults(readings, input, subjectToken, { overview, score, daily = false } = {}) {
+function renderResult(reading, input, subjectToken) {
   const result = document.querySelector("#result");
   result.replaceChildren();
   result.append(element("p", translate("result.eyebrow"), "eyebrow"), element("h1", translate("result.title")));
-  if (overview) result.append(element("p", overview, "lead"));
-  if (score !== undefined && score !== null) result.append(textWithLabel(translate("result.average_score"), score));
-  if (daily) {
-    const dailyShare = element("button", translate("result.copy_daily"));
-    dailyShare.type = "button";
-    dailyShare.addEventListener("click", () => copyValue(queryForDaily(input, subjectToken), dailyShare));
-    result.append(dailyShare);
-  }
-  let historyFailed = false;
-  readings.forEach((reading) => {
-    if (!saveReading(reading, input, subjectToken).saved) historyFailed = true;
-    result.append(renderReading(reading, input, subjectToken));
-  });
-  if (daily) result.append(element("p", translate("result.traditions_may_disagree"), "privacy-note"));
-  const disclaimer = readings.find((reading) => reading.disclaimer)?.disclaimer;
-  if (disclaimer) result.append(element("p", disclaimer, "privacy-note"));
-  if (historyFailed) setStatus(translate("status.history_unavailable"));
-  state.activeReadings = readings;
+  const { saved } = saveReading(reading, input, subjectToken);
+  result.append(renderReading(reading, input, subjectToken));
+  if (reading.disclaimer) result.append(element("p", reading.disclaimer, "privacy-note"));
+  if (!saved) setStatus(translate("status.history_unavailable"));
+  state.activeReading = reading;
   state.activeInput = input;
-  state.activeDaily = daily;
   state.activeReadingSubject = subjectToken;
   showView("result", { focus: true });
 }
 
-async function runDaily(params = {}) {
-  if (readingInFlight) return;
-  setReadingInFlight(true);
-  setStatus(translate("status.daily"));
-  const input = {
-    target_date: params.date || today(),
-    question: params.question || undefined,
-    birth_date: params.birth_date || undefined,
-    full_name: params.full_name || undefined,
-    options: {},
-  };
-  try {
-    const subjectToken = params.subjectToken === undefined
-      ? deriveSubjectToken("daily", input)
-      : params.subjectToken;
-    const response = await dailyReading({ ...input, subject_key: subjectToken, lang: state.lang });
-    setStatus("");
-    renderResults(response.readings, input, subjectToken, {
-      overview: response.overview,
-      score: response.score,
-      daily: true,
-    });
-  } catch (error) {
-    setStatus(error.message || translate("status.network"));
-  } finally {
-    setReadingInFlight(false);
-  }
-}
-
-async function runReading(input = inputFromForm(), engineId = engineSelect.value, subjectToken) {
+async function runReading(input = inputFromForm(), subjectToken) {
   if (readingInFlight) return;
   setReadingInFlight(true);
   setStatus(translate("status.reading"));
   try {
-    const token = subjectToken === undefined ? deriveSubjectToken(engineId, input) : subjectToken;
-    const reading = await createReading({ engine_id: engineId, input, subject_key: token, lang: state.lang });
+    const token = subjectToken === undefined ? deriveSubjectToken(TAROT_ENGINE_ID, input) : subjectToken;
+    const reading = await createReading({ engine_id: TAROT_ENGINE_ID, input, subject_key: token, lang: state.lang });
     setStatus("");
-    renderResults([reading], input, token, {});
+    renderResult(reading, input, token);
   } catch (error) {
     setStatus(error.message || translate("status.network"));
   } finally {
@@ -355,8 +246,7 @@ function renderHistory() {
 }
 
 function readUrl() {
-  const fragment = window.location.hash.replace(/^#/, "");
-  return new URLSearchParams(fragment || window.location.search);
+  return readShareParams(window.location.hash, window.location.search);
 }
 
 function setupEvents() {
@@ -367,9 +257,7 @@ function setupEvents() {
       showView(view, { focus: true });
     });
   });
-  engineSelect.addEventListener("change", updateFields);
   document.querySelector("#language-select").addEventListener("change", (event) => changeLanguage(event.target.value));
-  document.querySelector("#daily-button").addEventListener("click", () => runDaily());
   document.querySelector("#reading-form").addEventListener("submit", (event) => {
     event.preventDefault();
     runReading();
@@ -384,23 +272,10 @@ function setupEvents() {
 }
 
 async function changeLanguage(lang) {
-  const previousEngine = engineSelect.value;
   state.lang = lang;
   setLanguage(lang);
-  state.systems = await fetchSystems(state.lang);
-  populateSystems();
-  if (state.activeReadings.length && state.activeInput) {
-    if (state.activeDaily) {
-      await runDaily({
-        date: state.activeInput.target_date,
-        question: state.activeInput.question,
-        birth_date: state.activeInput.birth_date,
-        full_name: state.activeInput.full_name,
-        subjectToken: state.activeReadingSubject,
-      });
-    } else {
-      await runReading(state.activeInput, previousEngine, state.activeReadingSubject);
-    }
+  if (state.activeReading && state.activeInput) {
+    await runReading(state.activeInput, state.activeReadingSubject);
   }
 }
 
@@ -410,30 +285,18 @@ async function init() {
   document.querySelector("#language-select").value = state.lang;
   document.querySelector("#target-date").value = today();
   setupEvents();
-  showView("landing");
-  try {
-    state.systems = await fetchSystems(state.lang);
-    populateSystems();
-    const params = readUrl();
-    if (params.get("engine") || params.get("daily") === "1") {
-      fillForm(params);
-      const rawSubject = params.get("s")?.trim();
-      const deepLinkSubject = rawSubject ? rawSubject : undefined;
-      if (params.get("daily") === "1") {
-        await runDaily({
-          date: params.get("date") || today(),
-          question: params.get("q"),
-          birth_date: params.get("birth"),
-          full_name: params.get("name"),
-          subjectToken: deepLinkSubject,
-        });
-      } else {
-        await runReading(inputFromForm(), params.get("engine"), deepLinkSubject);
-      }
-      if (!deepLinkSubject && state.activeReadings.length) setStatus(translate("status.share_incomplete"));
-    }
-  } catch (error) {
-    setStatus(error.message || translate("status.network"));
+  showView("reading-form");
+  const params = readUrl();
+  if (isUnsupportedShare(params)) {
+    setStatus(translate("status.unsupported_share"));
+    return;
+  }
+  if (params.get("engine")) {
+    fillForm(params);
+    const rawSubject = params.get("s")?.trim();
+    const deepLinkSubject = rawSubject ? rawSubject : undefined;
+    await runReading(inputFromForm(), deepLinkSubject);
+    if (!deepLinkSubject && state.activeReading) setStatus(translate("status.share_incomplete"));
   }
 }
 
