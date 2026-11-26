@@ -263,7 +263,11 @@ const SUIT_SVG = {
 };
 const RANK_PIPS = {ace:1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10};
 
-let lang = localStorage.getItem(LANG_KEY) || ((navigator.language || "ja").startsWith("en") ? "en" : "ja");
+function readItem(key){ try { return localStorage.getItem(key); } catch { return null; } }
+function writeItem(key, value){ try { localStorage.setItem(key, value); return true; } catch { return false; } }
+function removeItem(key){ try { localStorage.removeItem(key); } catch {} }
+
+let lang = readItem(LANG_KEY) || ((navigator.language || "ja").startsWith("en") ? "en" : "ja");
 if (!STR[lang]) lang = "ja";
 let current = null;      // {mode, cards:[{key,rev}], fromHistory:boolean, saved:boolean}
 let flippedCount = 0;
@@ -370,13 +374,13 @@ function flip(slot){
 }
 
 function loadHistory(){
-  try { const raw = localStorage.getItem(HIST_KEY); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; }
+  try { const raw = readItem(HIST_KEY); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; }
   catch (e) { return []; }
 }
 function saveHistory(reading){
   const hist = loadHistory();
   hist.unshift({ ts: new Date().toISOString(), mode: reading.mode, cards: reading.cards });
-  localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 50)));
+  writeItem(HIST_KEY, JSON.stringify(hist.slice(0, 50)));
   renderHistory();
 }
 function renderHistory(){
@@ -425,7 +429,7 @@ function applyLang(){
 }
 function setLang(next){
   lang = next;
-  localStorage.setItem(LANG_KEY, lang);
+  writeItem(LANG_KEY, lang);
   applyLang();
 }
 
@@ -435,7 +439,7 @@ $("#reveal-all").addEventListener("click", () => { document.querySelectorAll("#s
 $("#lang-ja").addEventListener("click", () => setLang("ja"));
 $("#lang-en").addEventListener("click", () => setLang("en"));
 $("#clear-history").addEventListener("click", () => {
-  if (confirm(STR[lang].clearConfirm)){ localStorage.removeItem(HIST_KEY); renderHistory(); }
+  if (confirm(STR[lang].clearConfirm)){ removeItem(HIST_KEY); renderHistory(); }
 });
 
 applyLang();
